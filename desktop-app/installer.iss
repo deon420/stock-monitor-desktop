@@ -33,10 +33,6 @@ WizardResizable=no
 DisableProgramGroupPage=yes
 DisableWelcomePage=no
 
-; Welcome and finish customization
-WizardImageFile=compiler:WizModernImage-IS.bmp
-WizardSmallImageFile=compiler:WizModernSmallImage-IS.bmp
-
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
