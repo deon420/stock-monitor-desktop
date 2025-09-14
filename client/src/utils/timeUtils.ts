@@ -9,7 +9,7 @@ export function formatTimeAgo(date: Date): string {
   const diffInDays = Math.floor(diffInHours / 24)
 
   if (diffInSeconds < 60) {
-    return diffInSeconds <= 1 ? 'Just now' : `${diffInSeconds} seconds ago`
+    return diffInSeconds <= 59 ? 'Just now' : `${diffInSeconds} seconds ago`
   } else if (diffInMinutes < 60) {
     return diffInMinutes === 1 ? '1 minute ago' : `${diffInMinutes} minutes ago`
   } else if (diffInHours < 24) {

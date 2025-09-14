@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Package, TrendingDown, Clock, DollarSign } from "lucide-react"
+import StatusIndicator from "./StatusIndicator"
 
 interface StatsCardsProps {
   totalProducts: number
@@ -65,16 +66,12 @@ export default function StatsCards({
         )
       })}
       
-      {lastUpdateTime && (
-        <Card className="col-span-3" data-testid="last-update-card">
-          <CardContent className="flex items-center justify-center py-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="w-4 h-4" />
-              <span>Last updated: {lastUpdateTime.toLocaleString()}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Status Indicator - Click to cycle through options */}
+      <Card className="col-span-3 hover-elevate" data-testid="status-indicator-card">
+        <CardContent className="p-0">
+          <StatusIndicator />
+        </CardContent>
+      </Card>
     </div>
   )
 }
