@@ -30,7 +30,8 @@
     ],
     "win": {
       "target": "nsis",
-      "publisherName": "Stock Monitor"
+      "publisherName": "Stock Monitor",
+      "icon": "assets/icon.png"
     },
     "nsis": {
       "oneClick": false,
@@ -40,6 +41,7 @@
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "Stock Monitor",
+      "include": "installer.nsh",
       "artifactName": "StockMonitor-Setup-${version}.${ext}",
       "deleteAppDataOnUninstall": true,
       "runAfterFinish": true,
