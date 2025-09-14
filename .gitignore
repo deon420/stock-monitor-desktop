@@ -1,0 +1,11 @@
+# Build outputs
+dist/
+dist-electron/
+build/
+*.exe
+*.dmg
+*.deb
+*.rpm
+*.AppImage
+standalone/
+client/public/StockMonitor*.exe

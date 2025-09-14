@@ -1,0 +1,190 @@
+name: Build and Release Desktop App
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v1.0.0, v1.0.1, etc.
+  workflow_dispatch:  # Allow manual triggering from GitHub UI
+
+env:
+  # Environment variables for the build process
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  build-and-release:
+    name: Build and Release for Windows
+    runs-on: windows-latest
+    
+    steps:
+      # Checkout the repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper version detection
+      
+      # Set up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      # Set up Python (required for some native dependencies)
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      # Install main project dependencies
+      - name: Install Main Dependencies
+        run: npm ci
+      
+      # Build the frontend application
+      - name: Build Frontend
+        run: |
+          echo "Building frontend application..."
+          npm run build
+          echo "Frontend build completed"
+      
+      # Install desktop app dependencies
+      - name: Install Desktop Dependencies
+        working-directory: ./desktop-app
+        run: |
+          echo "Installing desktop app dependencies..."
+          npm ci
+          echo "Desktop dependencies installed"
+      
+      # Copy frontend build to desktop app
+      - name: Copy Frontend to Desktop App
+        run: |
+          echo "Copying frontend build to desktop app..."
+          if (Test-Path "dist/public") {
+            if (Test-Path "desktop-app/frontend") {
+              Remove-Item -Recurse -Force "desktop-app/frontend"
+            }
+            New-Item -ItemType Directory -Force -Path "desktop-app/frontend"
+            Copy-Item -Recurse -Force "dist/public/*" "desktop-app/frontend/"
+            echo "Frontend copied successfully"
+          } else {
+            echo "Error: Frontend build not found at dist/public"
+            exit 1
+          }
+        shell: powershell
+      
+      # Verify frontend files were copied
+      - name: Verify Frontend Files
+        working-directory: ./desktop-app
+        run: |
+          echo "Verifying frontend files..."
+          if (Test-Path "frontend/index.html") {
+            echo "✓ Frontend files verified successfully"
+            Get-ChildItem "frontend" | Select-Object Name, Length | Format-Table
+          } else {
+            echo "Error: Frontend files not found in desktop-app/frontend"
+            exit 1
+          }
+        shell: powershell
+      
+      # Build and publish the desktop application
+      - name: Build and Publish Desktop App
+        working-directory: ./desktop-app
+        env:
+          # GitHub token for publishing releases
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Windows code signing (optional - add if you have certificates)
+          # CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          # CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: |
+          echo "Starting desktop app build and publish..."
+          npm run build
+          echo "Desktop app build and publish completed"
+      
+      # Upload build artifacts (backup)
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()  # Upload even if build fails for debugging
+        with:
+          name: desktop-app-build-${{ github.ref_name }}
+          path: |
+            desktop-app/dist/
+            desktop-app/*.log
+          retention-days: 30
+      
+      # Create detailed release notes
+      - name: Generate Release Notes
+        if: success()
+        run: |
+          echo "Generating release notes..."
+          $version = "${{ github.ref_name }}"
+          $releaseNotes = @"
+          ## Stock Monitor Desktop App $version
+          
+          ### 🚀 New Release
+          
+          This release includes the latest features and improvements for Stock Monitor Desktop.
+          
+          ### 📦 Download
+          
+          - **Windows**: Download the ``StockMonitor-Setup-$($version.TrimStart('v')).exe`` file below
+          - **Auto-Update**: Existing users will be automatically notified of this update
+          
+          ### ✨ Features
+          
+          - Real-time price monitoring for Amazon and Walmart products
+          - Desktop notifications for price drops and stock changes
+          - Secure authentication with encrypted data storage
+          - System tray integration for background monitoring
+          - Auto-update functionality
+          
+          ### 🔧 Installation
+          
+          1. Download the installer below
+          2. Run the installer as administrator (if prompted)
+          3. Follow the installation wizard
+          4. Launch Stock Monitor from your desktop or start menu
+          
+          ### 🆘 Support
+          
+          If you encounter any issues, please report them in the repository issues section.
+          
+          ---
+          
+          **Build Information:**
+          - Build Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')
+          - Node.js Version: ${{ env.NODE_VERSION }}
+          - Commit: ${{ github.sha }}
+          "@ 
+          
+          # Save release notes to file
+          $releaseNotes | Out-File -FilePath "release-notes.md" -Encoding UTF8
+          echo "Release notes generated successfully"
+        shell: powershell
+      
+      # Verify release assets were created
+      - name: Verify Release Assets
+        if: success()
+        working-directory: ./desktop-app
+        run: |
+          echo "Verifying release assets..."
+          if (Test-Path "dist") {
+            echo "✓ Build directory found"
+            Get-ChildItem "dist" -Recurse | Where-Object {!$_.PSIsContainer} | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize
+          } else {
+            echo "Warning: Build directory not found"
+          }
+        shell: powershell
+
+  # Post-release notifications (optional)
+  post-release:
+    name: Post-Release Tasks
+    runs-on: ubuntu-latest
+    needs: build-and-release
+    if: success()
+    
+    steps:
+      - name: Release Success Notification
+        run: |
+          echo "🎉 Stock Monitor Desktop App release completed successfully!"
+          echo "Version: ${{ github.ref_name }}"
+          echo "Release available at: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"

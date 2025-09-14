@@ -1,0 +1,21 @@
+[2025-09-14T00:43:40.454Z] === Stock Monitor Debug Log Started ===
+[2025-09-14T00:43:40.459Z] Node version: v18.5.0
+[2025-09-14T00:43:40.459Z] Platform: win32
+[2025-09-14T00:43:40.459Z] Architecture: x64
+[2025-09-14T00:43:40.460Z] Current working directory: C:\Users\kalvi\Downloads
+[2025-09-14T00:43:40.460Z] __dirname: C:\snapshot\standalone
+[2025-09-14T00:43:40.460Z] process.execPath: C:\Users\kalvi\Downloads\StockMonitor-Windows.exe
+[2025-09-14T00:43:40.525Z] UNCAUGHT EXCEPTION: Cannot find module 'C:\snapshot\standalone\node_modules\axios\dist\node\axios.cjs'
+1) If you want to compile the package/file into executable, please pay attention to compilation warnings and specify a literal in 'require' call. 2) If you don't want to compile the package/file into executable and want to 'require' it from filesystem (likely plugin), specify an absolute path in 'require' call using process.cwd() or process.execPath.
+[2025-09-14T00:43:40.527Z] Stack: Error: Cannot find module 'C:\snapshot\standalone\node_modules\axios\dist\node\axios.cjs'
+1) If you want to compile the package/file into executable, please pay attention to compilation warnings and specify a literal in 'require' call. 2) If you don't want to compile the package/file into executable and want to 'require' it from filesystem (likely plugin), specify an absolute path in 'require' call using process.cwd() or process.execPath.
+    at createEsmNotFoundErr (node:internal/modules/cjs/loader:967:15)
+    at finalizeEsmResolution (node:internal/modules/cjs/loader:960:15)
+    at resolveExports (node:internal/modules/cjs/loader:488:14)
+    at Module._findPath (node:internal/modules/cjs/loader:528:31)
+    at Module._resolveFilename (node:internal/modules/cjs/loader:932:27)
+    at Function._resolveFilename (pkg/prelude/bootstrap.js:1951:46)
+    at Module._load (node:internal/modules/cjs/loader:787:27)
+    at Module.require (node:internal/modules/cjs/loader:1012:19)
+    at Module.require (pkg/prelude/bootstrap.js:1851:31)
+    at require (node:internal/modules/cjs/helpers:102:18)

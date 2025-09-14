@@ -1,0 +1,70 @@
+{
+  "name": "stock-monitor-desktop",
+  "version": "1.0.0",
+  "description": "Stock Monitor Desktop - Track Amazon and Walmart product prices",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win",
+    "build-frontend": "cd .. && npm run build && cp -r dist/public/* desktop-app/frontend/",
+    "build-all": "npm run build-frontend && npm run build",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.stockmonitor.app",
+    "productName": "Stock Monitor",
+    "copyright": "Made by one person who cares",
+    "electronVersion": "28.0.0",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "server/**/*",
+      "frontend/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico",
+      "publisherName": "Stock Monitor"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Stock Monitor",
+      "include": "build/installer.nsh",
+      "artifactName": "StockMonitor-Setup-${version}.${ext}",
+      "deleteAppDataOnUninstall": false
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "YOUR_GITHUB_USERNAME",
+      "repo": "YOUR_REPOSITORY_NAME",
+      "private": false,
+      "releaseType": "release"
+    }
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "node-cron": "^3.0.3",
+    "get-port": "^7.0.0",
+    "wait-port": "^1.0.4",
+    "better-sqlite3": "^9.0.0",
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "author": "Stock Monitor",
+  "license": "MIT"
+}

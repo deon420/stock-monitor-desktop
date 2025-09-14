@@ -1,0 +1,43 @@
+{
+  "appId": "com.stockmonitor.desktop",
+  "productName": "Stock Monitor",
+  "directories": {
+    "output": "dist-electron"
+  },
+  "files": [
+    "desktop-app/**/*",
+    "dist/**/*",
+    "node_modules/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "desktop-app/assets",
+      "to": "assets",
+      "filter": ["**/*"]
+    }
+  ],
+  "mac": {
+    "category": "public.app-category.business",
+    "icon": "desktop-app/assets/icon.icns"
+  },
+  "win": {
+    "target": "nsis",
+    "icon": "desktop-app/assets/icon.ico"
+  },
+  "linux": {
+    "target": "AppImage",
+    "icon": "desktop-app/assets/icon.png",
+    "category": "Office"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "YOUR_GITHUB_USERNAME",
+    "repo": "YOUR_REPO_NAME",
+    "private": false
+  }
+}

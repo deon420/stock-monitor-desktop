@@ -1,0 +1,46 @@
+~/workspace$ rm -rf standalone/
+rm -rf client/public/StockMonitor*.exe
+rm -rf client/public/StockMonitor-Desktop.exe
+~/workspace$ echo "# Build outputs
+dist/
+dist-electron/
+build/
+*.exe
+*.dmg
+*.deb
+*.rpm
+*.AppImage
+standalone/
+client/public/StockMonitor*.exe" > .gitignore
+~/workspace$ git add .
+git commit -m "Remove large executable files, add .gitignore"
+[main d9ffe92] Remove large executable files, add .gitignore
+ 3 files changed, 73 insertions(+), 15 deletions(-)
+ create mode 100644 attached_assets/Pasted--workspace-git-push-GIT-URL-To-https-github-com-deon420-stock-monitor-desktop-rejected--1757832113749_1757832113750.txt
+ create mode 100644 attached_assets/Pasted-Enumerating-objects-956-done-Counting-objects-100-956-956-done-Delta-compression-using-up-1757832362033_1757832362033.txt
+~/workspace$ git push $GIT_URL
+Enumerating objects: 962, done.
+Counting objects: 100% (962/962), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (940/940), done.
+Writing objects: 100% (961/961), 176.67 MiB | 3.88 MiB/s, done.
+Total 961 (delta 597), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (597/597), done.
+remote: warning: File standalone/StockMonitor-Windows.exe is 58.27 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File client/public/StockMonitor-Windows.exe is 58.27 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File standalone/StockMonitor-Windows.exe is 58.27 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File standalone/StockMonitor-Windows.exe is 58.27 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File standalone/StockMonitor-Windows.exe is 57.94 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File client/public/StockMonitor-Windows.exe is 58.89 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File standalone/StockMonitor-Linux is 66.16 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File client/public/StockMonitor-Windows.exe is 58.28 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File standalone/StockMonitor-Mac is 70.91 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File client/public/StockMonitor-Desktop.exe is 57.91 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: error: Trace: f9d68af769c79c4cfe4a50d64fb800da94eb775aa3aef71a850ce483d43073c1
+remote: error: See https://gh.io/lfs for more information.
+remote: error: File client/public/StockMonitor-Desktop-App.exe is 201.22 MB; this exceeds GitHub's file size limit of 100.00 MB
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.
+To https://github.com/deon420/stock-monitor-desktop
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/deon420/stock-monitor-desktop'
+~/workspace$ 

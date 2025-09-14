@@ -1,0 +1,26 @@
+~/workspace$ git push $GIT_URL --force
+Enumerating objects: 962, done.
+Counting objects: 100% (962/962), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (940/940), done.
+Writing objects: 100% (961/961), 161.69 MiB | 3.70 MiB/s, done.
+Total 961 (delta 600), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (600/600), done.
+remote: warning: File standalone/StockMonitor-Linux is 66.16 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File standalone/StockMonitor-Mac is 70.91 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File standalone/StockMonitor-Windows.exe is 58.27 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File client/public/StockMonitor-Windows.exe is 58.27 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File standalone/StockMonitor-Windows.exe is 57.94 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File client/public/StockMonitor-Desktop.exe is 57.91 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File client/public/StockMonitor-Windows.exe is 58.89 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File client/public/StockMonitor-Windows.exe is 58.28 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File standalone/StockMonitor-Windows.exe is 58.27 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: warning: File standalone/StockMonitor-Windows.exe is 58.27 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB
+remote: error: Trace: 438a5ce92dde7774d27774f85eeb5630227165ecac159a5a5809018510715fda
+remote: error: See https://gh.io/lfs for more information.
+remote: error: File client/public/StockMonitor-Desktop-App.exe is 201.22 MB; this exceeds GitHub's file size limit of 100.00 MB
+remote: error: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.
+To https://github.com/deon420/stock-monitor-desktop
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://github.com/deon420/stock-monitor-desktop'
+~/workspace$ 
