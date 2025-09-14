@@ -229,6 +229,18 @@ export class DesktopDataProvider {
   }
 
   /**
+   * IDataProvider interface methods
+   */
+  
+  isReady(): boolean {
+    return !!this.api && !!this.api.dbHelper;
+  }
+
+  getProviderType(): 'web-demo' | 'desktop' | 'api' {
+    return 'desktop';
+  }
+
+  /**
    * Legacy compatibility methods
    */
   

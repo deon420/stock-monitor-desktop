@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
+import { DataProviderProvider } from "@/contexts/DataProviderContext";
 import { DesktopAuthProvider, useDesktopAuth } from "@/contexts/DesktopAuthContext";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { DesktopLogin } from "@/components/DesktopLogin";
@@ -65,14 +66,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="stock-monitor-theme">
-        <DesktopAuthProvider>
-          <NotificationsProvider>
-            <TooltipProvider>
-              <Toaster />
-              <AuthenticatedRouter />
-            </TooltipProvider>
-          </NotificationsProvider>
-        </DesktopAuthProvider>
+        <DataProviderProvider>
+          <DesktopAuthProvider>
+            <NotificationsProvider>
+              <TooltipProvider>
+                <Toaster />
+                <AuthenticatedRouter />
+              </TooltipProvider>
+            </NotificationsProvider>
+          </DesktopAuthProvider>
+        </DataProviderProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

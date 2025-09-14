@@ -14,131 +14,17 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { audioPlayer } from "@/utils/audioPlayer"
 import { Play } from "lucide-react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNotifications } from "@/contexts/NotificationsContext"
-import { ApiError, apiRequest } from "@/lib/queryClient"
-import { isDesktopApp, DesktopDataProvider } from "@/lib/desktopDataProvider"
+import { useDataProvider } from "@/contexts/DataProviderContext"
+import { Product, ProductInput, AppSettings } from "@/lib/dataProvider"
+import { WebDemoDataProvider } from "@/lib/webDemoDataProvider"
 
-// todo: remove mock functionality
-interface Product {
-  id: string
-  name: string
-  url: string
-  platform: "amazon" | "walmart"
-  currentPrice?: number
-  previousPrice?: number
-  status: "in-stock" | "out-of-stock" | "low-stock" | "unknown"
-  lastChecked: Date
-  notifyForStock: boolean
-  notifyForPrice: boolean
-}
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    name: "Wireless Bluetooth Headphones with Active Noise Cancellation",
-    url: "https://amazon.com/product/123",
-    platform: "amazon" as const,
-    currentPrice: 89.99,
-    previousPrice: 119.99,
-    status: "in-stock" as const,
-    lastChecked: new Date(),
-    notifyForStock: false,
-    notifyForPrice: true
-  },
-  {
-    id: "2", 
-    name: "Smart Home Security Camera 1080P WiFi",
-    url: "https://walmart.com/product/456",
-    platform: "walmart" as const,
-    currentPrice: 45.99,
-    previousPrice: 45.99,
-    status: "low-stock" as const,
-    lastChecked: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    notifyForStock: true,
-    notifyForPrice: false
-  },
-  {
-    id: "3",
-    name: "Portable Power Bank 20000mAh Fast Charging",
-    url: "https://amazon.com/product/789", 
-    platform: "amazon" as const,
-    status: "out-of-stock" as const,
-    lastChecked: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    notifyForStock: false,
-    notifyForPrice: true
-  },
-  {
-    id: "4",
-    name: "Fitness Tracker with Heart Rate Monitor",
-    url: "https://walmart.com/product/101",
-    platform: "walmart" as const,
-    currentPrice: 79.99,
-    previousPrice: 99.99,
-    status: "in-stock" as const,
-    lastChecked: new Date(Date.now() - 30 * 60 * 1000),
-    notifyForStock: true,
-    notifyForPrice: false
-  },
-  {
-    id: "5",
-    name: "Gaming Mechanical Keyboard RGB Backlit",
-    url: "https://amazon.com/product/202",
-    platform: "amazon" as const,
-    currentPrice: 129.99,
-    status: "in-stock" as const,
-    lastChecked: new Date(Date.now() - 15 * 60 * 1000),
-    notifyForStock: false,
-    notifyForPrice: true
-  },
-  {
-    id: "6",
-    name: "Wireless Phone Charger Stand 15W",
-    url: "https://walmart.com/product/303",
-    platform: "walmart" as const,
-    status: "out-of-stock" as const,
-    lastChecked: new Date(Date.now() - 3 * 60 * 60 * 1000),
-    notifyForStock: true,
-    notifyForPrice: false
-  },
-  {
-    id: "7",
-    name: "Smart Watch Series 8 GPS + Cellular",
-    url: "https://amazon.com/product/404",
-    platform: "amazon" as const,
-    currentPrice: 249.99,
-    previousPrice: 399.99,
-    status: "in-stock" as const,
-    lastChecked: new Date(Date.now() - 10 * 60 * 1000),
-    notifyForStock: false,
-    notifyForPrice: true
-  },
-  {
-    id: "8",
-    name: "4K Webcam with Auto Focus",
-    url: "https://walmart.com/product/505",
-    platform: "walmart" as const,
-    currentPrice: 89.99,
-    previousPrice: 129.99,
-    status: "low-stock" as const,
-    lastChecked: new Date(Date.now() - 45 * 60 * 1000),
-    notifyForStock: true,
-    notifyForPrice: true
-  },
-  {
-    id: "9",
-    name: "Wireless Earbuds Pro with ANC",
-    url: "https://amazon.com/product/606",
-    platform: "amazon" as const,
-    currentPrice: 179.99,
-    status: "in-stock" as const,
-    lastChecked: new Date(Date.now() - 5 * 60 * 1000),
-    notifyForStock: false,
-    notifyForPrice: true
-  }
-]
 
 export default function Dashboard() {
-  const queryClient = useQueryClient()
+  // Use DataProvider context
+  const { dataProvider, isReady, providerType, error: providerError } = useDataProvider()
+  
+  const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [isMonitoring, setIsMonitoring] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
@@ -147,14 +33,17 @@ export default function Dashboard() {
   const [priceDropAlert, setPriceDropAlert] = useState<Product | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
   // State for Edit and History modals
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [historyProduct, setHistoryProduct] = useState<Product | null>(null)
   
   // Settings state
-  const [settings, setSettings] = useState({
-    amazonCheckInterval: 20, // minutes
-    walmartCheckInterval: 10, // minutes
+  const [settings, setSettings] = useState<AppSettings>({
+    amazonCheckInterval: 20,
+    walmartCheckInterval: 10,
     enableRandomization: true,
     enableAudio: true,
     priceDropSound: "chime",
@@ -166,39 +55,47 @@ export default function Dashboard() {
     testEmailSent: false
   })
   
-  // Determine if we're running in desktop mode
-  const isDesktop = isDesktopApp()
-  const [desktopProvider, setDesktopProvider] = useState<DesktopDataProvider | null>(null)
-  
-  // Initialize desktop provider if available
+  // Load products when data provider is ready
   useEffect(() => {
-    if (isDesktop) {
+    async function loadProducts() {
+      if (!dataProvider || !isReady) return
+      
       try {
-        const provider = new DesktopDataProvider()
-        setDesktopProvider(provider)
-        console.log('[Dashboard] Desktop data provider initialized')
-      } catch (error) {
-        console.error('[Dashboard] Failed to initialize desktop provider:', error)
+        setLoading(true)
+        setError(null)
+        console.log('[Dashboard] Loading products from provider:', providerType)
+        const productList = await dataProvider.getProducts()
+        setProducts(productList)
+        console.log('[Dashboard] Loaded', productList.length, 'products')
+      } catch (err) {
+        console.error('[Dashboard] Failed to load products:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load products')
+        setProducts([]) // Fallback to empty array
+      } finally {
+        setLoading(false)
       }
     }
-  }, [isDesktop])
+    
+    loadProducts()
+  }, [dataProvider, isReady, providerType])
   
-  // Fetch products from the appropriate data source
-  const { data: products = mockProducts, isLoading: productsLoading, error: productsError } = useQuery({
-    queryKey: ['/api/products'],
-    queryFn: async () => {
-      if (isDesktop && desktopProvider) {
-        console.log('[Dashboard] Fetching products from desktop database')
-        return await desktopProvider.getProducts()
-      } else {
-        console.log('[Dashboard] Fetching products from HTTP API')
-        const response = await apiRequest('GET', '/api/products')
-        return await response.json()
+  // Load settings when data provider is ready
+  useEffect(() => {
+    async function loadSettings() {
+      if (!dataProvider || !isReady) return
+      
+      try {
+        const appSettings = await dataProvider.getSettings()
+        setSettings(appSettings)
+        console.log('[Dashboard] Settings loaded')
+      } catch (err) {
+        console.error('[Dashboard] Failed to load settings:', err)
+        // Continue with default settings
       }
-    },
-    enabled: !isDesktop || !!desktopProvider, // Wait for desktop provider to be ready
-    staleTime: 30 * 1000, // Cache for 30 seconds
-  })
+    }
+    
+    loadSettings()
+  }, [dataProvider, isReady])
 
   // Use shared notifications context
   const { notifications, addNotification, markAsRead, markAllAsRead } = useNotifications()
@@ -210,57 +107,80 @@ export default function Dashboard() {
     filterProducts(searchQuery, {})
   }, [products, searchQuery])
 
-  // Add product mutation
-  const addProductMutation = useMutation({
-    mutationFn: async (newProduct: { name: string; url: string; platform: "amazon" | "walmart"; asin?: string }) => {
-      const productData = {
-        name: newProduct.name,
-        url: newProduct.url,
-        platform: newProduct.platform,
-        asin: newProduct.asin || null,
-        notifyOnPriceDrop: newProduct.platform === "amazon",
-        notifyOnStockChange: newProduct.platform === "walmart",
-      }
+  // Product operations using DataProvider
+  const handleAddProduct = async (productInput: ProductInput) => {
+    if (!dataProvider) {
+      console.error('[Dashboard] Data provider not available')
+      return
+    }
+    
+    try {
+      setLoading(true)
+      console.log('[Dashboard] Adding product:', productInput.name)
+      const newProduct = await dataProvider.addProduct(productInput)
       
-      if (isDesktop && desktopProvider) {
-        return await desktopProvider.addProduct(productData)
-      } else {
-        const response = await apiRequest('POST', '/api/products', productData)
-        return await response.json()
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/products'] })
+      // Update local state
+      setProducts(prev => [...prev, newProduct])
       setShowAddForm(false)
-    },
-    onError: (error) => {
-      console.error('[Dashboard] Failed to add product:', error)
+      console.log('[Dashboard] Product added successfully')
+    } catch (err) {
+      console.error('[Dashboard] Failed to add product:', err)
+      setError(err instanceof Error ? err.message : 'Failed to add product')
+    } finally {
+      setLoading(false)
     }
-  })
-
-  // Delete product mutation
-  const deleteProductMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      if (isDesktop && desktopProvider) {
-        return await desktopProvider.deleteProduct(productId)
+  }
+  
+  const handleDeleteProduct = async (productId: string) => {
+    if (!dataProvider) {
+      console.error('[Dashboard] Data provider not available')
+      return
+    }
+    
+    // Prevent double-deletion by checking if product still exists
+    if (!products.find(p => p.id === productId)) return
+    
+    try {
+      setLoading(true)
+      console.log('[Dashboard] Deleting product:', productId)
+      const result = await dataProvider.deleteProduct(productId)
+      
+      if (result.success) {
+        // Update local state
+        setProducts(prev => prev.filter(p => p.id !== productId))
+        console.log('[Dashboard] Product deleted successfully')
       } else {
-        const response = await apiRequest('DELETE', `/api/products/${productId}`)
-        return await response.json()
+        console.error('[Dashboard] Delete operation failed')
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/products'] })
-    },
-    onError: (error) => {
-      console.error('[Dashboard] Failed to delete product:', error)
+    } catch (err) {
+      console.error('[Dashboard] Failed to delete product:', err)
+      setError(err instanceof Error ? err.message : 'Failed to delete product')
+    } finally {
+      setLoading(false)
     }
-  })
-
-  // Load settings for audio notifications
-  const { data: audioSettings } = useQuery({
-    queryKey: ['/api/settings'],
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  })
+  }
+  
+  const handleUpdateProduct = async (productId: string, updates: Partial<Product>) => {
+    if (!dataProvider) {
+      console.error('[Dashboard] Data provider not available')
+      return
+    }
+    
+    try {
+      setLoading(true)
+      console.log('[Dashboard] Updating product:', productId, updates)
+      const updatedProduct = await dataProvider.updateProduct(productId, updates)
+      
+      // Update local state
+      setProducts(prev => prev.map(p => p.id === productId ? updatedProduct : p))
+      console.log('[Dashboard] Product updated successfully')
+    } catch (err) {
+      console.error('[Dashboard] Failed to update product:', err)
+      setError(err instanceof Error ? err.message : 'Failed to update product')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSearch = (query: string) => {
     setSearchQuery(query)
@@ -294,9 +214,6 @@ export default function Dashboard() {
     setFilteredProducts(filtered)
   }
 
-  const handleAddProduct = (newProduct: { name: string; url: string; platform: "amazon" | "walmart"; asin?: string }) => {
-    addProductMutation.mutate(newProduct)
-  }
 
   // Demo simulation - simplified for React Query compatibility
   const handleSimulateStockChange = async () => {
@@ -362,39 +279,48 @@ export default function Dashboard() {
     }
   }
 
-  const handleEditProduct = (id: string) => {
+  const handleEditProductClick = (id: string) => {
     console.log('Edit product:', id)
-    const product = products.find((p: Product) => p.id === id)
+    const product = products.find(p => p.id === id)
     if (product) {
       setEditProduct(product)
     }
   }
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteProductClick = (id: string) => {
     console.log('Delete product:', id)
-    // Prevent double-deletion by checking if product still exists
-    if (!products.find((p: Product) => p.id === id)) return
-    
-    deleteProductMutation.mutate(id)
+    handleDeleteProduct(id)
   }
 
   const handleViewHistory = (id: string) => {
     console.log('View history for product:', id)
-    const product = products.find((p: Product) => p.id === id)
+    const product = products.find(p => p.id === id)
     if (product) {
       setHistoryProduct(product)
     }
   }
 
-  const handleNotificationSettingsChange = (productId: string, settings: { notifyForStock: boolean; notifyForPrice: boolean }) => {
-    console.log('Updating notification settings for product:', productId, settings)
-    // This would require an update product mutation - for now just log
-    console.log('Notification settings update not yet implemented')
+  const handleNotificationSettingsChange = async (productId: string, notificationSettings: { notifyForStock: boolean; notifyForPrice: boolean }) => {
+    console.log('Updating notification settings for product:', productId, notificationSettings)
+    await handleUpdateProduct(productId, notificationSettings)
   }
 
-  const handleSettingsChange = (newSettings: any) => {
+  const handleSettingsChange = async (newSettings: Partial<AppSettings>) => {
     console.log('Settings updated:', newSettings)
-    setSettings(newSettings)
+    
+    if (dataProvider) {
+      try {
+        const updatedSettings = await dataProvider.updateSettings(newSettings)
+        setSettings(updatedSettings)
+      } catch (err) {
+        console.error('[Dashboard] Failed to save settings:', err)
+        // Update local state anyway for immediate feedback
+        setSettings(prev => ({ ...prev, ...newSettings }))
+      }
+    } else {
+      // Update local state if no provider available
+      setSettings(prev => ({ ...prev, ...newSettings }))
+    }
   }
 
   const handleMarkNotificationAsRead = (notificationId: string) => {
@@ -405,16 +331,41 @@ export default function Dashboard() {
     markAllAsRead()
   }
 
-  const handleSaveEditProduct = (id: string, updates: Partial<Product>) => {
+  const handleSaveEditProduct = async (id: string, updates: Partial<Product>) => {
     console.log('Saving product updates:', id, updates)
-    // This would require an update product mutation - for now just close the modal
-    console.log('Product edit functionality not yet fully implemented')
+    await handleUpdateProduct(id, updates)
     setEditProduct(null)
   }
 
   // Calculate stats
-  const inStockCount = products.filter((p: Product) => p.status === "in-stock").length
-  const outOfStockCount = products.filter((p: Product) => p.status === "out-of-stock").length
+  const inStockCount = products.filter(p => p.status === "in-stock").length
+  const outOfStockCount = products.filter(p => p.status === "out-of-stock").length
+  
+  // Show loading state if provider is not ready or data is loading
+  if (!isReady || loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg mb-2">Loading Stock Monitor...</p>
+          <p className="text-sm text-muted-foreground">
+            {providerType === 'loading' ? 'Initializing...' : `Using ${providerType} provider`}
+          </p>
+        </div>
+      </div>
+    )
+  }
+  
+  // Show error state if provider failed to initialize
+  if (providerError && !dataProvider) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg mb-2 text-destructive">Failed to Initialize</p>
+          <p className="text-sm text-muted-foreground">{providerError}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -473,8 +424,8 @@ export default function Dashboard() {
                   <ProductCard
                     key={product.id}
                     {...product}
-                    onEdit={handleEditProduct}
-                    onDelete={handleDeleteProduct}
+                    onEdit={handleEditProductClick}
+                    onDelete={handleDeleteProductClick}
                     onViewHistory={handleViewHistory}
                     onNotificationSettingsChange={handleNotificationSettingsChange}
                   />
