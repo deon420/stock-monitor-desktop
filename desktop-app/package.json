@@ -22,6 +22,8 @@
     "files": [
       "main.js",
       "preload.js",
+      "desktop-database.js",
+      "keychain-service.js",
       "server/**/*",
       "frontend/**/*",
       "node_modules/**/*"
