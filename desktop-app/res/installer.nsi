@@ -3,9 +3,11 @@
 
 Unicode True
 RequestExecutionLevel admin
-Name "Stock Monitor Installer 1.0.0"
-OutFile "StockMonitor-Setup-1.0.0.exe"
+Caption "Stock Monitor Installer 1.0.0"
+Name "Stock Monitor"
+OutFile "StockMonitor-Setup-1.0.0.exe"  
 InstallDir "$PROGRAMFILES64\Stock Monitor"
+SetShellVarContext all
 
 ; Modern UI
 !include "MUI2.nsh"
