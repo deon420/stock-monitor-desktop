@@ -883,8 +883,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Initialize performance monitoring
-  performanceMonitor.startMonitoring(30000); // Monitor every 30 seconds to reduce resource usage
-  console.log('[Server] Performance monitoring started');
+  // Disable performance monitoring in development to reduce memory pressure
+  if (process.env.NODE_ENV !== 'development') {
+    performanceMonitor.startMonitoring(30000);
+    console.log('[Server] Performance monitoring started');
+  } else {
+    console.log('[Server] Performance monitoring disabled in development');
+  }
 
   // Cleanup on server shutdown
   process.on('SIGTERM', () => {
