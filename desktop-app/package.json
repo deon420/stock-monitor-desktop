@@ -30,8 +30,7 @@
       "node_modules/**/*"
     ],
     "win": {
-      "target": "dir",
-      "publisherName": "Stock Monitor"
+      "target": "dir"
     },
     "publish": {
       "provider": "github",
