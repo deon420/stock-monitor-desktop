@@ -7,25 +7,20 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import { DataProviderProvider } from "@/contexts/DataProviderContext";
 import { DesktopAuthProvider, useDesktopAuth } from "@/contexts/DesktopAuthContext";
-import { AntiDetectionProvider, useAntiDetection } from "@/contexts/AntiDetectionContext";
-import { SolutionSuggestionsProvider } from "@/contexts/SolutionSuggestionsContext";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { DesktopLogin } from "@/components/DesktopLogin";
 import { ReactQueryValidation } from "@/components/ReactQueryValidation";
-import AntiDetectionModal from "@/components/AntiDetectionModal";
 import LandingPage from "@/pages/LandingPage";
 import Dashboard from "@/components/Dashboard";
 import NotificationHistoryPage from "@/pages/NotificationHistoryPage";
 import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
-import AntiBotTestingPage from "@/pages/AntiBotTestingPage";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import type { AuthResponse } from "@shared/schema";
 
 function AuthenticatedRouter() {
   const { isAuthenticated, isLoading, login, apiRequest } = useDesktopAuth();
-  const { detectionAlert, showDetectionModal, hideDetectionAlert } = useAntiDetection();
 
   // Desktop authentication is now wired in DesktopAuthContext
 
@@ -56,17 +51,11 @@ function AuthenticatedRouter() {
     <>
       <ReactQueryValidation />
       <WelcomeDialog />
-      <AntiDetectionModal
-        isOpen={showDetectionModal}
-        detection={detectionAlert}
-        onClose={hideDetectionAlert}
-      />
       <Switch>
         <Route path="/" component={LandingPage} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/notifications" component={NotificationHistoryPage} />
         <Route path="/admin" component={AdminDashboard} />
-        <Route path="/antibot-testing" component={AntiBotTestingPage} />
         <Route component={NotFound} />
       </Switch>
     </>
@@ -79,16 +68,12 @@ function App() {
       <ThemeProvider defaultTheme="system" storageKey="stock-monitor-theme">
         <DataProviderProvider>
           <DesktopAuthProvider>
-            <AntiDetectionProvider>
-              <SolutionSuggestionsProvider>
-                <NotificationsProvider>
+            <NotificationsProvider>
                   <TooltipProvider>
                     <Toaster />
                     <AuthenticatedRouter />
                   </TooltipProvider>
-                </NotificationsProvider>
-              </SolutionSuggestionsProvider>
-            </AntiDetectionProvider>
+            </NotificationsProvider>
           </DesktopAuthProvider>
         </DataProviderProvider>
       </ThemeProvider>
