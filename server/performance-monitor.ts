@@ -42,10 +42,10 @@ export interface PerformanceMetrics {
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor;
   private metricsHistory: PerformanceMetrics[] = [];
-  private maxHistorySize = 1000; // Keep last 1000 measurements
+  private maxHistorySize = process.env.NODE_ENV === 'development' ? 50 : 1000; // Reduced for development
   private monitorInterval: NodeJS.Timeout | null = null;
   private cpuStartMeasurement: any = null;
-  private cpuLastTimestamp: bigint = process.hrtime.bigint();
+  private cpuLastTimestamp: number = Date.now();
 
   private constructor() {
     this.initializeCpuMeasurement();
@@ -60,7 +60,7 @@ export class PerformanceMonitor {
 
   private initializeCpuMeasurement(): void {
     this.cpuStartMeasurement = process.cpuUsage();
-    this.cpuLastTimestamp = process.hrtime.bigint();
+    this.cpuLastTimestamp = Date.now();
   }
 
   private calculateCpuUsage(): number {
@@ -69,9 +69,9 @@ export class PerformanceMonitor {
       return 0;
     }
 
-    const currentTimestamp = process.hrtime.bigint();
-    const elapsedTimeNs = currentTimestamp - this.cpuLastTimestamp;
-    const elapsedTimeUs = Number(elapsedTimeNs / 1000n); // Convert to microseconds
+    const currentTimestamp = Date.now();
+    const elapsedTimeMs = currentTimestamp - this.cpuLastTimestamp;
+    const elapsedTimeUs = elapsedTimeMs * 1000; // Convert to microseconds
     
     const cpuUsage = process.cpuUsage(this.cpuStartMeasurement);
     const totalCpu = cpuUsage.user + cpuUsage.system;
@@ -117,25 +117,41 @@ export class PerformanceMonitor {
     };
   }
 
-  startMonitoring(intervalMs = 5000): void {
+  startMonitoring(intervalMs?: number): void {
     if (this.monitorInterval) {
       this.stopMonitoring();
     }
 
-    console.log(`[PerformanceMonitor] Starting monitoring with ${intervalMs}ms interval`);
+    // Use longer intervals in development to reduce memory pressure
+    const defaultInterval = process.env.NODE_ENV === 'development' ? 300000 : 30000; // 5 min dev, 30s prod
+    const interval = intervalMs || defaultInterval;
+
+    console.log(`[PerformanceMonitor] Starting monitoring with ${interval}ms interval`);
     
     this.monitorInterval = setInterval(async () => {
-      const metrics = await this.getCurrentMetrics();
-      this.metricsHistory.push(metrics);
-      
-      // Trim history to prevent memory bloat
-      if (this.metricsHistory.length > this.maxHistorySize) {
-        this.metricsHistory = this.metricsHistory.slice(-this.maxHistorySize);
+      try {
+        const metrics = await this.getCurrentMetrics();
+        this.metricsHistory.push(metrics);
+        
+        // Trim history to prevent memory bloat
+        if (this.metricsHistory.length > this.maxHistorySize) {
+          this.metricsHistory = this.metricsHistory.slice(-this.maxHistorySize);
+        }
+        
+        // Log warnings for high resource usage (less aggressive in development)
+        this.checkResourceUsage(metrics);
+        
+        // Force garbage collection in development if heap usage is high
+        if (process.env.NODE_ENV === 'development' && global.gc) {
+          const heapUsagePercent = (metrics.memory.heap.used / metrics.memory.heap.total) * 100;
+          if (heapUsagePercent > 85) {
+            global.gc();
+          }
+        }
+      } catch (error) {
+        console.error('[PerformanceMonitor] Error collecting metrics:', error);
       }
-      
-      // Log warnings for high resource usage
-      this.checkResourceUsage(metrics);
-    }, intervalMs);
+    }, interval);
   }
 
   stopMonitoring(): void {
@@ -150,15 +166,21 @@ export class PerformanceMonitor {
     const memoryUsagePercent = (metrics.memory.used / metrics.memory.total) * 100;
     const heapUsagePercent = (metrics.memory.heap.used / metrics.memory.heap.total) * 100;
     
-    if (metrics.cpu.usage > 80) {
+    // Use higher thresholds in development to reduce noise
+    const isDev = process.env.NODE_ENV === 'development';
+    const cpuThreshold = isDev ? 90 : 80;
+    const memoryThreshold = isDev ? 85 : 80;
+    const heapThreshold = isDev ? 95 : 90;
+    
+    if (metrics.cpu.usage > cpuThreshold) {
       console.warn(`[PerformanceMonitor] High CPU usage: ${metrics.cpu.usage.toFixed(1)}%`);
     }
     
-    if (memoryUsagePercent > 80) {
+    if (memoryUsagePercent > memoryThreshold) {
       console.warn(`[PerformanceMonitor] High memory usage: ${memoryUsagePercent.toFixed(1)}%`);
     }
     
-    if (heapUsagePercent > 90) {
+    if (heapUsagePercent > heapThreshold) {
       console.warn(`[PerformanceMonitor] High heap usage: ${heapUsagePercent.toFixed(1)}%`);
     }
     
