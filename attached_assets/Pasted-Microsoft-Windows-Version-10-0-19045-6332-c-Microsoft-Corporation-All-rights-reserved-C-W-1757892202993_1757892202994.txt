@@ -1,0 +1,60 @@
+Microsoft Windows [Version 10.0.19045.6332]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\WINDOWS\system32>cd C:\StockMonitor\desktop-app
+
+C:\StockMonitor\desktop-app>npx electron-builder --dir
+Need to install the following packages:
+electron-builder@26.0.12
+Ok to proceed? (y) y
+
+npm warn skipping integrity check for git dependency ssh://git@github.com/electron/node-gyp.git
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated @npmcli/move-file@2.0.1: This functionality has been moved to @npmcli/fs
+npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@8.1.0: Glob versions prior to v9 are no longer supported
+npm warn deprecated glob@8.1.0: Glob versions prior to v9 are no longer supported
+  • electron-builder  version=26.0.12 os=10.0.19045
+  • loaded configuration  file=package.json ("build" field)
+  ⨯ Invalid configuration object. electron-builder 26.0.12 has been initialized using a configuration object that does not match the API schema.
+ - configuration.win has an unknown property 'publisherName'. These properties are valid:
+   object { appId?, artifactName?, asar?, asarUnpack?, azureSignOptions?, compression?, cscKeyPassword?, cscLink?, defaultArch?, detectUpdateChannel?, disableDefaultIgnoredFiles?, electronLanguages?, electronUpdaterCompatibility?, executableName?, extraFiles?, extraResources?, fileAssociations?, files?, forceCodeSigning?, generateUpdatesFilesForAllChannels?, icon?, legalTrademarks?, protocols?, publish?, releaseInfo?, requestedExecutionLevel?, signAndEditExecutable?, signExts?, signtoolOptions?, target?, verifyUpdateCodeSignature? }
+     How to fix:
+     1. Open https://www.electron.build/win
+     2. Search the option name on the page (or type in into Search to find across the docs).
+       * Not found? The option was deprecated or not exists (check spelling).
+       * Found? Check that the option in the appropriate place. e.g. "title" only in the "dmg", not in the root.
+  failedTask=build stackTrace=ValidationError: Invalid configuration object. electron-builder 26.0.12 has been initialized using a configuration object that does not match the API schema.
+ - configuration.win has an unknown property 'publisherName'. These properties are valid:
+   object { appId?, artifactName?, asar?, asarUnpack?, azureSignOptions?, compression?, cscKeyPassword?, cscLink?, defaultArch?, detectUpdateChannel?, disableDefaultIgnoredFiles?, electronLanguages?, electronUpdaterCompatibility?, executableName?, extraFiles?, extraResources?, fileAssociations?, files?, forceCodeSigning?, generateUpdatesFilesForAllChannels?, icon?, legalTrademarks?, protocols?, publish?, releaseInfo?, requestedExecutionLevel?, signAndEditExecutable?, signExts?, signtoolOptions?, target?, verifyUpdateCodeSignature? }
+     How to fix:
+     1. Open https://www.electron.build/win
+     2. Search the option name on the page (or type in into Search to find across the docs).
+       * Not found? The option was deprecated or not exists (check spelling).
+       * Found? Check that the option in the appropriate place. e.g. "title" only in the "dmg", not in the root.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       at validate (C:\Users\kalvi\AppData\Local\npm-cache\_npx\009083ec26dc578f\node_modules\@develar\schema-utils\dist\validate.js:86:11)
+    at validateConfiguration (C:\Users\kalvi\AppData\Local\npm-cache\_npx\009083ec26dc578f\node_modules\app-builder-lib\src\util\config\config.ts:239:3)
+    at Packager.validateConfig (C:\Users\kalvi\AppData\Local\npm-cache\_npx\009083ec26dc578f\node_modules\app-builder-lib\src\packager.ts:384:5)
+    at Packager.build (C:\Users\kalvi\AppData\Local\npm-cache\_npx\009083ec26dc578f\node_modules\app-builder-lib\src\packager.ts:392:5)
+    at executeFinally (C:\Users\kalvi\AppData\Local\npm-cache\_npx\009083ec26dc578f\node_modules\builder-util\src\promise.ts:12:14)
+
+C:\StockMonitor\desktop-app>npx electron-builder --dir
+  • electron-builder  version=26.0.12 os=10.0.19045
+  • loaded configuration  file=package.json ("build" field)
+  • writing effective config  file=dist\builder-effective-config.yaml
+  • installing production dependencies  pm=npm platform=win32 arch=x64 projectDir=C:\StockMonitor\desktop-app appDir=C:\StockMonitor\desktop-app
+  • executing @electron/rebuild  electronVersion=28.0.0 arch=x64 buildFromSource=false appDir=./
+  • installing native dependencies  arch=x64
+  • preparing       moduleName=better-sqlite3 arch=x64
+  • finished        moduleName=better-sqlite3 arch=x64
+  • preparing       moduleName=keytar arch=x64
+  • finished        moduleName=keytar arch=x64
+  • completed installing native dependencies
+  • packaging       platform=win32 arch=x64 electron=28.0.0 appOutDir=dist\win-unpacked
+  • updating asar integrity executable resource  executablePath=dist\win-unpacked\Stock Monitor.exe
+  • default Electron icon is used  reason=application icon is not set
+  • signing with signtool.exe  path=dist\win-unpacked\Stock Monitor.exe
+
+C:\StockMonitor\desktop-app>
