@@ -14,22 +14,22 @@ const statusOptions: StatusOption[] = [
     id: 'online-undetected',
     icon: Circle,
     text: 'ONLINE | MONITORING IS UNDETECTED',
-    description: 'Simple dot with scale pulse',
-    pulseType: 'glow'
+    description: 'Simple dot with reverse spin',
+    pulseType: 'spin'
   },
   {
     id: 'secure-monitoring',
     icon: Shield,
     text: 'SECURE | MONITORING IS UNDETECTED', 
-    description: 'Shield with glow pulse',
-    pulseType: 'glow'
+    description: 'Shield with reverse spin',
+    pulseType: 'spin'
   },
   {
-    id: 'active-undetected',
+    id: 'online-undetected-2',
     icon: Eye,
-    text: 'ACTIVE | SYSTEM IS UNDETECTED',
-    description: 'Eye with scale pulse',
-    pulseType: 'scale'
+    text: 'ONLINE | SYSTEM IS UNDETECTED',
+    description: 'Eye with reverse spin',
+    pulseType: 'spin'
   },
   {
     id: 'system-operational',
@@ -92,7 +92,7 @@ export default function StatusIndicator() {
       case 'glow':
         return 'animate-pulse drop-shadow-md'
       case 'spin':
-        return 'animate-spin'
+        return 'animate-spin-reverse'
       default:
         return 'animate-pulse'
     }
