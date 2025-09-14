@@ -12,23 +12,23 @@ interface StatusOption {
 const statusOptions: StatusOption[] = [
   {
     id: 'online-undetected',
-    icon: Circle,
+    icon: RotateCcw,
     text: 'ONLINE | MONITORING IS UNDETECTED',
-    description: 'Simple dot with reverse spin',
+    description: 'Spinning arrows - slowed 50%',
     pulseType: 'spin'
   },
   {
     id: 'secure-monitoring',
-    icon: Shield,
+    icon: RotateCcw,
     text: 'SECURE | MONITORING IS UNDETECTED', 
-    description: 'Shield with reverse spin',
+    description: 'Spinning arrows - slowed 50%',
     pulseType: 'spin'
   },
   {
     id: 'online-undetected-2',
-    icon: Eye,
+    icon: RotateCcw,
     text: 'ONLINE | SYSTEM IS UNDETECTED',
-    description: 'Eye with reverse spin',
+    description: 'Spinning arrows - slowed 50%',
     pulseType: 'spin'
   },
   {
