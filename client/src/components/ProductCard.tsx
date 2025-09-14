@@ -144,8 +144,8 @@ export default function ProductCard({
           />
           
           {lastChecked && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="w-3 h-3" />
+            <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+              <Clock className="w-3 h-3 flex-shrink-0" />
               <span>Last checked: {formatTimeAgo(lastChecked)}</span>
             </div>
           )}
