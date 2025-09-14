@@ -49,9 +49,7 @@
       "warningsAsErrors": false,
       "displayLanguageSelector": false,
       "installerHeader": "assets/installerHeader.bmp",
-      "installerSidebar": "assets/installerSidebar.bmp",
-      "uninstallerHeader": "assets/uninstallerHeader.bmp",
-      "uninstallerSidebar": "assets/uninstallerSidebar.bmp"
+      "installerSidebar": "assets/installerSidebar.bmp"
     },
     "publish": {
       "provider": "github",
