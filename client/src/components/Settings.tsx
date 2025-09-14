@@ -24,7 +24,6 @@ interface SettingsProps {
   onClose: () => void
   onDemoStock?: () => void
   onDemoPrice?: () => void
-  onDemoAntiBot?: () => void
 }
 
 // Available sound options (only soft chime and notification)
@@ -33,7 +32,7 @@ const SOUND_OPTIONS = [
   { value: "notification", label: "Notification" }
 ]
 
-export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, onDemoAntiBot }: SettingsProps) {
+export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: SettingsProps) {
   const [showEmailHelp, setShowEmailHelp] = useState(false)
   const [testingEmail, setTestingEmail] = useState(false)
   const [emailTestResult, setEmailTestResult] = useState<string | null>(null)
@@ -43,9 +42,29 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
   const [showUnlockDialog, setShowUnlockDialog] = useState(false)
   const [simulatingStock, setSimulatingStock] = useState(false)
   const [simulatingPrice, setSimulatingPrice] = useState(false)
-  const [simulatingAntiBot, setSimulatingAntiBot] = useState(false)
   const [openingFolder, setOpeningFolder] = useState(false)
   const { toast } = useToast()
+
+  // Visual-only anti-bot settings for demo (no backend functionality)
+  const [demoAntiBotSettings, setDemoAntiBotSettings] = useState({
+    enableUserAgentRotation: true,
+    userAgentRotationFrequency: 'per_request',
+    userAgentTypes: 'desktop_mobile',
+    enableSmartDelays: true,
+    baseDelayMs: 2000,
+    randomizationFactor: 0.5,
+    enableHeaderRandomization: true,
+    rotateAcceptLanguage: true,
+    randomizeViewport: true,
+    enableIpRotation: false,
+    enableCaptchaSolving: false,
+    confirmBeforeApplying: true
+  })
+
+  // Handler for demo anti-bot settings changes (visual only)
+  const handleDemoAntiBotSettingChange = (key: string, value: any) => {
+    setDemoAntiBotSettings(prev => ({ ...prev, [key]: value }))
+  }
 
   // Fetch settings using React Query
   const { data: settings, isLoading } = useQuery<SettingsData>({
@@ -333,16 +352,6 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
     setTimeout(() => setSimulatingPrice(false), 1000)
   }
   
-  const handleSimulateAntiBot = () => {
-    if (simulatingAntiBot || !onDemoAntiBot) return
-    setSimulatingAntiBot(true)
-    
-    // Call the actual working demo function from Dashboard
-    onDemoAntiBot()
-    
-    // Reset button state
-    setTimeout(() => setSimulatingAntiBot(false), 1000)
-  }
 
   const EmailHelp = () => (
     <Dialog open={showEmailHelp} onOpenChange={setShowEmailHelp}>
@@ -556,26 +565,20 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                         </p>
                       </div>
                       <Switch
-                        checked={settings.solutionPreferences?.enableUserAgentRotation ?? true}
-                        onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
-                          ...settings.solutionPreferences,
-                          enableUserAgentRotation: checked
-                        })}
+                        checked={demoAntiBotSettings.enableUserAgentRotation}
+                        onCheckedChange={(checked) => handleDemoAntiBotSettingChange('enableUserAgentRotation', checked)}
                         data-testid="switch-user-agent-rotation"
                       />
                     </div>
 
-                    {settings.solutionPreferences?.enableUserAgentRotation !== false && (
+                    {demoAntiBotSettings.enableUserAgentRotation && (
                       <div className="pl-6 space-y-3">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label className="text-xs">Rotation Frequency</Label>
                             <Select 
-                              value={settings.solutionPreferences?.userAgentRotationFrequency || "per_request"} 
-                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
-                                ...settings.solutionPreferences,
-                                userAgentRotationFrequency: value
-                              })}
+                              value={demoAntiBotSettings.userAgentRotationFrequency} 
+                              onValueChange={(value) => handleDemoAntiBotSettingChange('userAgentRotationFrequency', value)}
                             >
                               <SelectTrigger className="text-xs" data-testid="select-ua-frequency">
                                 <SelectValue />
@@ -590,11 +593,8 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                           <div className="space-y-2">
                             <Label className="text-xs">Browser Types</Label>
                             <Select 
-                              value={settings.solutionPreferences?.userAgentTypes || "desktop_mobile"} 
-                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
-                                ...settings.solutionPreferences,
-                                userAgentTypes: value
-                              })}
+                              value={demoAntiBotSettings.userAgentTypes} 
+                              onValueChange={(value) => handleDemoAntiBotSettingChange('userAgentTypes', value)}
                             >
                               <SelectTrigger className="text-xs" data-testid="select-ua-types">
                                 <SelectValue />
@@ -626,26 +626,20 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                         </p>
                       </div>
                       <Switch
-                        checked={settings.solutionPreferences?.enableRequestDelays ?? true}
-                        onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
-                          ...settings.solutionPreferences,
-                          enableRequestDelays: checked
-                        })}
+                        checked={demoAntiBotSettings.enableSmartDelays}
+                        onCheckedChange={(checked) => handleDemoAntiBotSettingChange('enableSmartDelays', checked)}
                         data-testid="switch-request-delays"
                       />
                     </div>
 
-                    {settings.solutionPreferences?.enableRequestDelays !== false && (
+                    {demoAntiBotSettings.enableSmartDelays && (
                       <div className="pl-6 space-y-3">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label className="text-xs">Base Delay (seconds)</Label>
                             <Select 
-                              value={settings.solutionPreferences?.baseRequestDelay || "2"} 
-                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
-                                ...settings.solutionPreferences,
-                                baseRequestDelay: parseInt(value)
-                              })}
+                              value={(demoAntiBotSettings.baseDelayMs / 1000).toString()} 
+                              onValueChange={(value) => handleDemoAntiBotSettingChange('baseDelayMs', parseInt(value) * 1000)}
                             >
                               <SelectTrigger className="text-xs" data-testid="select-base-delay">
                                 <SelectValue />
@@ -662,11 +656,8 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                           <div className="space-y-2">
                             <Label className="text-xs">Randomization</Label>
                             <Select 
-                              value={settings.solutionPreferences?.requestDelayRandomization || "medium"} 
-                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
-                                ...settings.solutionPreferences,
-                                requestDelayRandomization: value
-                              })}
+                              value={demoAntiBotSettings.randomizationFactor === 0.5 ? 'medium' : demoAntiBotSettings.randomizationFactor === 0.3 ? 'low' : 'high'} 
+                              onValueChange={(value) => handleDemoAntiBotSettingChange('randomizationFactor', value === 'low' ? 0.3 : value === 'medium' ? 0.5 : 0.8)}
                             >
                               <SelectTrigger className="text-xs" data-testid="select-delay-randomization">
                                 <SelectValue />
@@ -698,26 +689,20 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                         </p>
                       </div>
                       <Switch
-                        checked={settings.solutionPreferences?.enableHeaderRandomization ?? true}
-                        onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
-                          ...settings.solutionPreferences,
-                          enableHeaderRandomization: checked
-                        })}
+                        checked={demoAntiBotSettings.enableHeaderRandomization}
+                        onCheckedChange={(checked) => handleDemoAntiBotSettingChange('enableHeaderRandomization', checked)}
                         data-testid="switch-header-randomization"
                       />
                     </div>
 
-                    {settings.solutionPreferences?.enableHeaderRandomization !== false && (
+                    {demoAntiBotSettings.enableHeaderRandomization && (
                       <div className="pl-6 space-y-3">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label className="text-xs">Accept-Language Pool</Label>
                             <Select 
-                              value={settings.solutionPreferences?.acceptLanguagePool || "en_variants"} 
-                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
-                                ...settings.solutionPreferences,
-                                acceptLanguagePool: value
-                              })}
+                              value="en_variants" 
+                              onValueChange={(value) => handleDemoAntiBotSettingChange('acceptLanguagePool', value)}
                             >
                               <SelectTrigger className="text-xs" data-testid="select-accept-language">
                                 <SelectValue />
@@ -732,11 +717,8 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                           <div className="space-y-2">
                             <Label className="text-xs">Custom Headers</Label>
                             <Switch
-                              checked={settings.solutionPreferences?.includeCustomHeaders ?? false}
-                              onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
-                                ...settings.solutionPreferences,
-                                includeCustomHeaders: checked
-                              })}
+                              checked={false}
+                              onCheckedChange={(checked) => handleDemoAntiBotSettingChange('includeCustomHeaders', checked)}
                               data-testid="switch-custom-headers"
                             />
                           </div>
@@ -760,16 +742,13 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                         </p>
                       </div>
                       <Switch
-                        checked={settings.solutionPreferences?.enableProxyRotation ?? false}
-                        onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
-                          ...settings.solutionPreferences,
-                          enableProxyRotation: checked
-                        })}
+                        checked={demoAntiBotSettings.enableIpRotation}
+                        onCheckedChange={(checked) => handleDemoAntiBotSettingChange('enableIpRotation', checked)}
                         data-testid="switch-proxy-rotation"
                       />
                     </div>
 
-                    {settings.solutionPreferences?.enableProxyRotation && (
+                    {demoAntiBotSettings.enableIpRotation && (
                       <div className="pl-6 space-y-3">
                         <Alert>
                           <Info className="w-4 h-4" />
@@ -797,11 +776,8 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                           <div className="space-y-2">
                             <Label className="text-xs">Rotation Strategy</Label>
                             <Select 
-                              value={settings.solutionPreferences?.proxyRotationStrategy || "round_robin"} 
-                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
-                                ...settings.solutionPreferences,
-                                proxyRotationStrategy: value
-                              })}
+                              value="round_robin" 
+                              onValueChange={(value) => handleDemoAntiBotSettingChange('proxyRotationStrategy', value)}
                             >
                               <SelectTrigger className="text-xs" data-testid="select-proxy-strategy">
                                 <SelectValue />
@@ -816,11 +792,8 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                           <div className="space-y-2">
                             <Label className="text-xs">Failure Handling</Label>
                             <Select 
-                              value={settings.solutionPreferences?.proxyFailureHandling || "retry_with_next"} 
-                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
-                                ...settings.solutionPreferences,
-                                proxyFailureHandling: value
-                              })}
+                              value="retry_with_next" 
+                              onValueChange={(value) => handleDemoAntiBotSettingChange('proxyFailureHandling', value)}
                             >
                               <SelectTrigger className="text-xs" data-testid="select-proxy-failure">
                                 <SelectValue />
@@ -852,26 +825,20 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                         </p>
                       </div>
                       <Switch
-                        checked={settings.solutionPreferences?.enableEffectivenessTracking ?? true}
-                        onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
-                          ...settings.solutionPreferences,
-                          enableEffectivenessTracking: checked
-                        })}
+                        checked={true}
+                        onCheckedChange={(checked) => handleDemoAntiBotSettingChange('enableEffectivenessTracking', checked)}
                         data-testid="switch-effectiveness-tracking"
                       />
                     </div>
 
-                    {settings.solutionPreferences?.enableEffectivenessTracking !== false && (
+                    {true && (
                       <div className="pl-6 space-y-3">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label className="text-xs">Success Threshold</Label>
                             <Select 
-                              value={settings.solutionPreferences?.effectivenessSuccessThreshold?.toString() || "80"} 
-                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
-                                ...settings.solutionPreferences,
-                                effectivenessSuccessThreshold: parseInt(value)
-                              })}
+                              value="80" 
+                              onValueChange={(value) => handleDemoAntiBotSettingChange('effectivenessSuccessThreshold', parseInt(value))}
                             >
                               <SelectTrigger className="text-xs" data-testid="select-success-threshold">
                                 <SelectValue />
@@ -887,11 +854,8 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                           <div className="space-y-2">
                             <Label className="text-xs">Auto-Apply Proven Solutions</Label>
                             <Switch
-                              checked={settings.solutionPreferences?.autoApplyProvenSolutions ?? false}
-                              onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
-                                ...settings.solutionPreferences,
-                                autoApplyProvenSolutions: checked
-                              })}
+                              checked={false}
+                              onCheckedChange={(checked) => handleDemoAntiBotSettingChange('autoApplyProvenSolutions', checked)}
                               data-testid="switch-auto-apply-proven"
                             />
                           </div>
@@ -955,20 +919,10 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                       {simulatingPrice ? "Simulating..." : "Price Drop"}
                     </Button>
                     
-                    <Button
-                      onClick={handleSimulateAntiBot}
-                      disabled={simulatingAntiBot}
-                      variant="outline"
-                      className="flex items-center justify-center gap-2 h-12"
-                      data-testid="button-simulate-anti-bot"
-                    >
-                      {simulatingAntiBot ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Shield className="w-4 h-4" />
-                      )}
-                      {simulatingAntiBot ? "Simulating..." : "Bot Detection"}
-                    </Button>
+                    <div className="flex items-center justify-center gap-2 h-12 px-4 border border-dashed border-muted-foreground/30 rounded-md">
+                      <Shield className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Visual Demo Only</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
