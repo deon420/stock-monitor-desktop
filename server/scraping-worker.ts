@@ -3,6 +3,21 @@ import * as cheerio from 'cheerio';
 import axios from 'axios';
 import { logAntiBotEvent, logScrapingRequest, initAntiBotLogger } from './antibot-logger';
 
+interface SolutionConfig {
+  enableUserAgentRotation?: boolean;
+  userAgentRotationFrequency?: 'per_request' | 'per_session' | 'daily';
+  userAgentTypes?: 'desktop_only' | 'mobile_only' | 'desktop_mobile';
+  enableRequestDelays?: boolean;
+  baseRequestDelay?: number; // seconds
+  requestDelayRandomization?: 'low' | 'medium' | 'high';
+  enableHeaderRandomization?: boolean;
+  acceptLanguagePool?: 'en_only' | 'en_variants' | 'global';
+  includeCustomHeaders?: boolean;
+  enableProxyRotation?: boolean;
+  proxyRotationStrategy?: 'round_robin' | 'random' | 'health_based';
+  proxyFailureHandling?: 'retry_with_next' | 'fallback_direct' | 'abort_request';
+}
+
 interface ScrapingTask {
   id: string;
   url: string;
@@ -10,6 +25,7 @@ interface ScrapingTask {
   maxRetries?: number;
   responseData?: string;
   headers?: Record<string, string>;
+  solutionConfig?: SolutionConfig;
 }
 
 interface AntiBotDetectionResult {
@@ -65,22 +81,68 @@ const workerAxios = axios.create({
   httpsAgent: new (require('https').Agent)({ keepAlive: true, maxSockets: 5 })
 });
 
-function getRandomUserAgent(): string {
-  const userAgents = [
+// Global solution configuration - updated when solutions are applied
+let currentSolutionConfig: SolutionConfig = {
+  enableUserAgentRotation: true,
+  userAgentRotationFrequency: 'per_request',
+  userAgentTypes: 'desktop_mobile',
+  enableRequestDelays: true,
+  baseRequestDelay: 2,
+  requestDelayRandomization: 'medium',
+  enableHeaderRandomization: true,
+  acceptLanguagePool: 'en_variants',
+  includeCustomHeaders: false,
+  enableProxyRotation: false,
+  proxyRotationStrategy: 'round_robin',
+  proxyFailureHandling: 'retry_with_next'
+};
+
+function getRandomUserAgent(config: SolutionConfig = currentSolutionConfig): string {
+  if (!config.enableUserAgentRotation) {
+    // Return a default user agent if rotation is disabled
+    return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+  }
+
+  let userAgents: string[] = [];
+
+  // Build user agent pool based on configuration
+  const desktopAgents = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15'
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
   ];
+
+  const mobileAgents = [
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1',
+    'Mozilla/5.0 (Android 14; Mobile; rv:109.0) Gecko/121.0 Firefox/121.0',
+    'Mozilla/5.0 (Linux; Android 14; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+  ];
+
+  switch (config.userAgentTypes) {
+    case 'desktop_only':
+      userAgents = desktopAgents;
+      break;
+    case 'mobile_only':
+      userAgents = mobileAgents;
+      break;
+    case 'desktop_mobile':
+    default:
+      userAgents = [...desktopAgents, ...mobileAgents];
+      break;
+  }
+
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
 
-function generateBrowserHeaders(userAgent: string, platform: "amazon" | "walmart"): Record<string, string> {
+function generateBrowserHeaders(userAgent: string, platform: "amazon" | "walmart", config: SolutionConfig = currentSolutionConfig): Record<string, string> {
   const baseHeaders: Record<string, string> = {
     'User-Agent': userAgent,
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.9',
+    'Accept-Language': getAcceptLanguage(config),
     'Accept-Encoding': 'gzip, deflate, br',
     'Cache-Control': 'max-age=0',
     'DNT': '1',
@@ -93,8 +155,93 @@ function generateBrowserHeaders(userAgent: string, platform: "amazon" | "walmart
   } else {
     baseHeaders.Referer = 'https://www.walmart.com/';
   }
+
+  // Apply header randomization if enabled
+  if (config.enableHeaderRandomization) {
+    // Randomize Accept header slightly
+    const acceptVariants = [
+      'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7'
+    ];
+    baseHeaders.Accept = acceptVariants[Math.floor(Math.random() * acceptVariants.length)];
+
+    // Sometimes add additional headers
+    if (config.includeCustomHeaders && Math.random() > 0.5) {
+      const additionalHeaders = {
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1'
+      };
+      Object.assign(baseHeaders, additionalHeaders);
+    }
+
+    // Randomly omit DNT header sometimes
+    if (Math.random() > 0.7) {
+      delete baseHeaders.DNT;
+    }
+  }
   
   return baseHeaders;
+}
+
+function getAcceptLanguage(config: SolutionConfig): string {
+  if (!config.enableHeaderRandomization) {
+    return 'en-US,en;q=0.9';
+  }
+
+  switch (config.acceptLanguagePool) {
+    case 'en_only':
+      return 'en-US,en;q=0.9';
+    case 'en_variants':
+      const enVariants = [
+        'en-US,en;q=0.9',
+        'en-GB,en-US;q=0.9,en;q=0.8',
+        'en-CA,en;q=0.9,fr;q=0.8',
+        'en-AU,en;q=0.9'
+      ];
+      return enVariants[Math.floor(Math.random() * enVariants.length)];
+    case 'global':
+      const globalLanguages = [
+        'en-US,en;q=0.9',
+        'en-GB,en-US;q=0.9,en;q=0.8',
+        'en-US,en;q=0.9,es;q=0.8',
+        'en-US,en;q=0.9,fr;q=0.8',
+        'en-US,en;q=0.9,de;q=0.8'
+      ];
+      return globalLanguages[Math.floor(Math.random() * globalLanguages.length)];
+    default:
+      return 'en-US,en;q=0.9';
+  }
+}
+
+function calculateRequestDelay(config: SolutionConfig = currentSolutionConfig): number {
+  if (!config.enableRequestDelays) {
+    return 0;
+  }
+
+  const baseDelay = (config.baseRequestDelay || 2) * 1000; // Convert to milliseconds
+  
+  let randomizationFactor = 0;
+  switch (config.requestDelayRandomization) {
+    case 'low':
+      randomizationFactor = 0.2; // ±20%
+      break;
+    case 'medium':
+      randomizationFactor = 0.5; // ±50%
+      break;
+    case 'high':
+      randomizationFactor = 1.0; // ±100%
+      break;
+    default:
+      randomizationFactor = 0.5;
+  }
+
+  const randomAdjustment = (Math.random() - 0.5) * 2 * randomizationFactor;
+  const finalDelay = baseDelay * (1 + randomAdjustment);
+  
+  return Math.max(0, Math.round(finalDelay));
 }
 
 function detectAntiBot(html: string, url: string, responseCode: number, responseTime: number, headers: Record<string, string>): AntiBotDetectionResult {
@@ -603,7 +750,7 @@ function extractProductName(html: string, platform: "amazon" | "walmart"): strin
   return productName;
 }
 
-async function scrapeWithRetry(task: ScrapingTask): Promise<ScrapingResult> {
+async function scrapeWithRetry(task: ScrapingTask, config: SolutionConfig = currentSolutionConfig): Promise<ScrapingResult> {
   const { id, url, platform, maxRetries = 3, responseData, headers } = task;
   
   // If responseData is provided, skip HTTP request and just parse
@@ -654,16 +801,23 @@ async function scrapeWithRetry(task: ScrapingTask): Promise<ScrapingResult> {
   // Otherwise, perform full scraping with retries
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // Progressive delay between requests - more human-like
+      // Apply solution-based delays between requests
       if (attempt > 1) {
-        const baseDelay = platform === 'walmart' ? 3000 : 2000;
-        const randomDelay = Math.random() * 3000 + baseDelay;
-        await new Promise(resolve => setTimeout(resolve, randomDelay));
+        const delay = calculateRequestDelay(config);
+        if (delay > 0) {
+          console.log(`[Worker] Applying ${delay}ms solution-based delay before retry ${attempt}`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          // Fallback to default delays if solution delays are disabled
+          const baseDelay = platform === 'walmart' ? 3000 : 2000;
+          const randomDelay = Math.random() * 3000 + baseDelay;
+          await new Promise(resolve => setTimeout(resolve, randomDelay));
+        }
       }
       
-      // Generate realistic browser headers
-      const userAgent = getRandomUserAgent();
-      const requestHeaders = headers || generateBrowserHeaders(userAgent, platform);
+      // Generate realistic browser headers using solution configuration
+      const userAgent = getRandomUserAgent(config);
+      const requestHeaders = headers || generateBrowserHeaders(userAgent, platform, config);
       
       // Add some randomness to make requests less detectable
       if (Math.random() > 0.7) {
@@ -796,13 +950,37 @@ async function scrapeWithRetry(task: ScrapingTask): Promise<ScrapingResult> {
 
 // Handle messages from main thread
 if (parentPort) {
-  parentPort.on('message', async (task: ScrapingTask) => {
+  parentPort.on('message', async (message: ScrapingTask | { type: 'updateConfig', config: SolutionConfig }) => {
     try {
-      const result = await scrapeWithRetry(task);
-      parentPort!.postMessage(result);
+      // Handle configuration updates
+      if ('type' in message && message.type === 'updateConfig') {
+        currentSolutionConfig = { ...currentSolutionConfig, ...message.config };
+        console.log('[Worker] Solution configuration updated:', message.config);
+        
+        // Log configuration change
+        antiBotLogger.logConfigurationChange('Solution Configuration Updated', {
+          ...currentSolutionConfig
+        }, []);
+        
+        parentPort!.postMessage({ type: 'configUpdated', success: true });
+        return;
+      }
+
+      // Handle scraping tasks
+      const task = message as ScrapingTask;
+      
+      // Merge task-specific config with global config
+      if (task.solutionConfig) {
+        const mergedConfig = { ...currentSolutionConfig, ...task.solutionConfig };
+        const result = await scrapeWithRetry(task, mergedConfig);
+        parentPort!.postMessage(result);
+      } else {
+        const result = await scrapeWithRetry(task, currentSolutionConfig);
+        parentPort!.postMessage(result);
+      }
     } catch (error) {
       parentPort!.postMessage({
-        id: task.id,
+        id: 'type' in message ? 'config-update' : (message as ScrapingTask).id,
         success: false,
         error: `Worker error: ${error instanceof Error ? error.message : 'Unknown error'}`
       });

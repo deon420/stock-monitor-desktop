@@ -8,6 +8,7 @@ import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import { DataProviderProvider } from "@/contexts/DataProviderContext";
 import { DesktopAuthProvider, useDesktopAuth } from "@/contexts/DesktopAuthContext";
 import { AntiDetectionProvider, useAntiDetection } from "@/contexts/AntiDetectionContext";
+import { SolutionSuggestionsProvider } from "@/contexts/SolutionSuggestionsContext";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { DesktopLogin } from "@/components/DesktopLogin";
 import { ReactQueryValidation } from "@/components/ReactQueryValidation";
@@ -77,12 +78,14 @@ function App() {
         <DataProviderProvider>
           <DesktopAuthProvider>
             <AntiDetectionProvider>
-              <NotificationsProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <AuthenticatedRouter />
-                </TooltipProvider>
-              </NotificationsProvider>
+              <SolutionSuggestionsProvider>
+                <NotificationsProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <AuthenticatedRouter />
+                  </TooltipProvider>
+                </NotificationsProvider>
+              </SolutionSuggestionsProvider>
             </AntiDetectionProvider>
           </DesktopAuthProvider>
         </DataProviderProvider>

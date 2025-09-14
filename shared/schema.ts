@@ -124,6 +124,57 @@ export const settings = pgTable("settings", {
   proxyUsername: text("proxy_username").notNull().default(""),
   proxyPassword: text("proxy_password").notNull().default(""),
   
+  // Solution Suggestion Settings
+  enableSolutionSuggestions: boolean("enable_solution_suggestions").notNull().default(true),
+  
+  // User Agent Rotation Settings
+  enableUserAgentRotation: boolean("enable_user_agent_rotation").notNull().default(true),
+  enableDesktopUserAgents: boolean("enable_desktop_user_agents").notNull().default(true),
+  enableMobileUserAgents: boolean("enable_mobile_user_agents").notNull().default(false),
+  enableFirefoxUserAgents: boolean("enable_firefox_user_agents").notNull().default(true),
+  enableChromeUserAgents: boolean("enable_chrome_user_agents").notNull().default(true),
+  enableSafariUserAgents: boolean("enable_safari_user_agents").notNull().default(false),
+  
+  // Request Delay Settings
+  enableDynamicDelays: boolean("enable_dynamic_delays").notNull().default(true),
+  minRequestDelay: integer("min_request_delay").notNull().default(1000), // 1 second
+  maxRequestDelay: integer("max_request_delay").notNull().default(5000), // 5 seconds
+  enableExponentialBackoff: boolean("enable_exponential_backoff").notNull().default(true),
+  maxBackoffDelay: integer("max_backoff_delay").notNull().default(300000), // 5 minutes
+  
+  // Header Randomization Settings
+  enableHeaderRandomization: boolean("enable_header_randomization").notNull().default(true),
+  enableAcceptLanguageVariation: boolean("enable_accept_language_variation").notNull().default(true),
+  enableAcceptEncodingVariation: boolean("enable_accept_encoding_variation").notNull().default(false),
+  enableCustomHeaders: boolean("enable_custom_headers").notNull().default(false),
+  
+  // IP/Proxy Rotation Settings
+  enableIpRotation: boolean("enable_ip_rotation").notNull().default(false),
+  enableProxyRotation: boolean("enable_proxy_rotation").notNull().default(false),
+  proxyRotationUrls: text("proxy_rotation_urls").notNull().default(""), // JSON array as string
+  
+  // Request Pattern Modification Settings
+  enablePatternRandomization: boolean("enable_pattern_randomization").notNull().default(true),
+  enableRequestOrderRandomization: boolean("enable_request_order_randomization").notNull().default(false),
+  enableTimingVariation: boolean("enable_timing_variation").notNull().default(true),
+  
+  // Platform-Specific Workaround Settings
+  enableAmazonWorkarounds: boolean("enable_amazon_workarounds").notNull().default(true),
+  enableWalmartWorkarounds: boolean("enable_walmart_workarounds").notNull().default(true),
+  enableCookieManagement: boolean("enable_cookie_management").notNull().default(false),
+  enableJsChallengeMitigation: boolean("enable_js_challenge_mitigation").notNull().default(false),
+  
+  // Solution Effectiveness Tracking
+  enableEffectivenessTracking: boolean("enable_effectiveness_tracking").notNull().default(true),
+  trackSolutionSuccess: boolean("track_solution_success").notNull().default(true),
+  autoDisableIneffectiveSolutions: boolean("auto_disable_ineffective_solutions").notNull().default(false),
+  solutionSuccessThreshold: integer("solution_success_threshold").notNull().default(60), // 60% success rate
+  
+  // Auto-Application Settings
+  enableAutoSolutionApplication: boolean("enable_auto_solution_application").notNull().default(false),
+  autoApplyOnDetection: boolean("auto_apply_on_detection").notNull().default(false),
+  confirmBeforeApplying: boolean("confirm_before_applying").notNull().default(true),
+  
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

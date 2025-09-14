@@ -12,12 +12,13 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Settings as SettingsIcon, Volume2, Mail, Shield, HelpCircle, Play, Send, Loader2, Download, Minus, AlertTriangle, Info, FolderOpen, Cog, Clock } from "lucide-react"
+import { Settings as SettingsIcon, Volume2, Mail, Shield, HelpCircle, Play, Send, Loader2, Download, Minus, AlertTriangle, Info, FolderOpen, Cog, Clock, Bot, Zap, RotateCcw, Timer, Globe, Shuffle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { apiRequest, queryClient } from "@/lib/queryClient"
 import { audioPlayer } from "@/utils/audioPlayer"
 import { isDesktopApp } from "@/lib/desktopDataProvider"
 import { Settings as SettingsData, UpdateSettings } from "@shared/schema"
+import { useSolutionSuggestions } from "@/contexts/SolutionSuggestionsContext"
 
 interface SettingsProps {
   isOpen: boolean
@@ -526,6 +527,387 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, on
                       </div>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+
+              {/* Anti-Detection Solutions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Bot className="w-5 h-5" />
+                    Anti-Detection Solutions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <p className="text-sm text-muted-foreground">
+                    Configure automatic anti-bot detection solutions. When bot protection is encountered, 
+                    enabled solutions will be suggested and can be applied instantly.
+                  </p>
+
+                  {/* User Agent Rotation */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <RotateCcw className="w-4 h-4" />
+                          User Agent Rotation
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Automatically rotate browser user agents to avoid detection patterns
+                        </p>
+                      </div>
+                      <Switch
+                        checked={settings.solutionPreferences?.enableUserAgentRotation ?? true}
+                        onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
+                          ...settings.solutionPreferences,
+                          enableUserAgentRotation: checked
+                        })}
+                        data-testid="switch-user-agent-rotation"
+                      />
+                    </div>
+
+                    {settings.solutionPreferences?.enableUserAgentRotation !== false && (
+                      <div className="pl-6 space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Rotation Frequency</Label>
+                            <Select 
+                              value={settings.solutionPreferences?.userAgentRotationFrequency || "per_request"} 
+                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
+                                ...settings.solutionPreferences,
+                                userAgentRotationFrequency: value
+                              })}
+                            >
+                              <SelectTrigger className="text-xs" data-testid="select-ua-frequency">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="per_request">Every Request</SelectItem>
+                                <SelectItem value="per_session">Per Session</SelectItem>
+                                <SelectItem value="daily">Daily</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Browser Types</Label>
+                            <Select 
+                              value={settings.solutionPreferences?.userAgentTypes || "desktop_mobile"} 
+                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
+                                ...settings.solutionPreferences,
+                                userAgentTypes: value
+                              })}
+                            >
+                              <SelectTrigger className="text-xs" data-testid="select-ua-types">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="desktop_only">Desktop Only</SelectItem>
+                                <SelectItem value="mobile_only">Mobile Only</SelectItem>
+                                <SelectItem value="desktop_mobile">Desktop & Mobile</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  {/* Request Delays */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Timer className="w-4 h-4" />
+                          Smart Request Delays
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Add intelligent delays between requests to avoid rate limiting
+                        </p>
+                      </div>
+                      <Switch
+                        checked={settings.solutionPreferences?.enableRequestDelays ?? true}
+                        onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
+                          ...settings.solutionPreferences,
+                          enableRequestDelays: checked
+                        })}
+                        data-testid="switch-request-delays"
+                      />
+                    </div>
+
+                    {settings.solutionPreferences?.enableRequestDelays !== false && (
+                      <div className="pl-6 space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Base Delay (seconds)</Label>
+                            <Select 
+                              value={settings.solutionPreferences?.baseRequestDelay || "2"} 
+                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
+                                ...settings.solutionPreferences,
+                                baseRequestDelay: parseInt(value)
+                              })}
+                            >
+                              <SelectTrigger className="text-xs" data-testid="select-base-delay">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1">1 second</SelectItem>
+                                <SelectItem value="2">2 seconds</SelectItem>
+                                <SelectItem value="3">3 seconds</SelectItem>
+                                <SelectItem value="5">5 seconds</SelectItem>
+                                <SelectItem value="10">10 seconds</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Randomization</Label>
+                            <Select 
+                              value={settings.solutionPreferences?.requestDelayRandomization || "medium"} 
+                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
+                                ...settings.solutionPreferences,
+                                requestDelayRandomization: value
+                              })}
+                            >
+                              <SelectTrigger className="text-xs" data-testid="select-delay-randomization">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="low">Low (±20%)</SelectItem>
+                                <SelectItem value="medium">Medium (±50%)</SelectItem>
+                                <SelectItem value="high">High (±100%)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  {/* Header Randomization */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Shuffle className="w-4 h-4" />
+                          Header Randomization
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Randomize HTTP headers to mimic real browser behavior
+                        </p>
+                      </div>
+                      <Switch
+                        checked={settings.solutionPreferences?.enableHeaderRandomization ?? true}
+                        onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
+                          ...settings.solutionPreferences,
+                          enableHeaderRandomization: checked
+                        })}
+                        data-testid="switch-header-randomization"
+                      />
+                    </div>
+
+                    {settings.solutionPreferences?.enableHeaderRandomization !== false && (
+                      <div className="pl-6 space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Accept-Language Pool</Label>
+                            <Select 
+                              value={settings.solutionPreferences?.acceptLanguagePool || "en_variants"} 
+                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
+                                ...settings.solutionPreferences,
+                                acceptLanguagePool: value
+                              })}
+                            >
+                              <SelectTrigger className="text-xs" data-testid="select-accept-language">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="en_only">English Only</SelectItem>
+                                <SelectItem value="en_variants">English Variants</SelectItem>
+                                <SelectItem value="global">Global Languages</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Custom Headers</Label>
+                            <Switch
+                              checked={settings.solutionPreferences?.includeCustomHeaders ?? false}
+                              onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
+                                ...settings.solutionPreferences,
+                                includeCustomHeaders: checked
+                              })}
+                              data-testid="switch-custom-headers"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  {/* Proxy Configuration */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Globe className="w-4 h-4" />
+                          Proxy Integration
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Use proxy servers to rotate IP addresses and avoid blocks
+                        </p>
+                      </div>
+                      <Switch
+                        checked={settings.solutionPreferences?.enableProxyRotation ?? false}
+                        onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
+                          ...settings.solutionPreferences,
+                          enableProxyRotation: checked
+                        })}
+                        data-testid="switch-proxy-rotation"
+                      />
+                    </div>
+
+                    {settings.solutionPreferences?.enableProxyRotation && (
+                      <div className="pl-6 space-y-3">
+                        <Alert>
+                          <Info className="w-4 h-4" />
+                          <AlertDescription className="text-xs">
+                            Proxy rotation requires configured proxy servers in Advanced Settings.
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => {
+                                // Auto-switch to advanced tab and unlock if needed
+                                if (!advancedUnlocked) {
+                                  setAdvancedUnlocked(true)
+                                }
+                                const tabTrigger = document.querySelector('[data-testid="tab-advanced"]') as HTMLElement
+                                if (tabTrigger) tabTrigger.click()
+                              }}
+                              className="px-2 py-1 h-auto text-primary underline hover:no-underline ml-1"
+                              data-testid="button-proxy-settings"
+                            >
+                              Configure Proxies
+                            </Button>
+                          </AlertDescription>
+                        </Alert>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Rotation Strategy</Label>
+                            <Select 
+                              value={settings.solutionPreferences?.proxyRotationStrategy || "round_robin"} 
+                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
+                                ...settings.solutionPreferences,
+                                proxyRotationStrategy: value
+                              })}
+                            >
+                              <SelectTrigger className="text-xs" data-testid="select-proxy-strategy">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="round_robin">Round Robin</SelectItem>
+                                <SelectItem value="random">Random</SelectItem>
+                                <SelectItem value="health_based">Health Based</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Failure Handling</Label>
+                            <Select 
+                              value={settings.solutionPreferences?.proxyFailureHandling || "retry_with_next"} 
+                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
+                                ...settings.solutionPreferences,
+                                proxyFailureHandling: value
+                              })}
+                            >
+                              <SelectTrigger className="text-xs" data-testid="select-proxy-failure">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="retry_with_next">Try Next Proxy</SelectItem>
+                                <SelectItem value="fallback_direct">Fallback Direct</SelectItem>
+                                <SelectItem value="abort_request">Abort Request</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  {/* Solution Effectiveness */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Zap className="w-4 h-4" />
+                          Solution Effectiveness Tracking
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Learn from applied solutions to improve future recommendations
+                        </p>
+                      </div>
+                      <Switch
+                        checked={settings.solutionPreferences?.enableEffectivenessTracking ?? true}
+                        onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
+                          ...settings.solutionPreferences,
+                          enableEffectivenessTracking: checked
+                        })}
+                        data-testid="switch-effectiveness-tracking"
+                      />
+                    </div>
+
+                    {settings.solutionPreferences?.enableEffectivenessTracking !== false && (
+                      <div className="pl-6 space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs">Success Threshold</Label>
+                            <Select 
+                              value={settings.solutionPreferences?.effectivenessSuccessThreshold?.toString() || "80"} 
+                              onValueChange={(value) => handleSettingChange('solutionPreferences', {
+                                ...settings.solutionPreferences,
+                                effectivenessSuccessThreshold: parseInt(value)
+                              })}
+                            >
+                              <SelectTrigger className="text-xs" data-testid="select-success-threshold">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="60">60% Success Rate</SelectItem>
+                                <SelectItem value="70">70% Success Rate</SelectItem>
+                                <SelectItem value="80">80% Success Rate</SelectItem>
+                                <SelectItem value="90">90% Success Rate</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs">Auto-Apply Proven Solutions</Label>
+                            <Switch
+                              checked={settings.solutionPreferences?.autoApplyProvenSolutions ?? false}
+                              onCheckedChange={(checked) => handleSettingChange('solutionPreferences', {
+                                ...settings.solutionPreferences,
+                                autoApplyProvenSolutions: checked
+                              })}
+                              data-testid="switch-auto-apply-proven"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <Alert>
+                    <Shield className="w-4 h-4" />
+                    <AlertDescription className="text-xs">
+                      <strong>Note:</strong> These solutions are applied automatically when bot detection occurs. 
+                      More aggressive settings may be more effective but could impact scraping speed.
+                    </AlertDescription>
+                  </Alert>
                 </CardContent>
               </Card>
 
