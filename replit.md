@@ -43,6 +43,15 @@ Preferred communication style: Simple, everyday language.
 - **Rate Limiting**: Concurrent job limiting and exponential backoff for failed requests
 - **Data Extraction**: ASIN extraction, price monitoring, and stock status detection
 - **Notification System**: Email alerts for stock availability and price changes
+- **Anti-Bot Detection**: Comprehensive detection system for identifying and responding to bot protection measures
+
+### Anti-Bot Detection System
+- **Detection Engine**: Advanced detection algorithms identifying Cloudflare, AWS WAF, rate limiting, IP blocking, JavaScript challenges, and platform-specific protection measures
+- **Confidence Scoring**: AI-driven confidence levels (0-1 scale) for detection accuracy with detailed diagnostic information
+- **Real-Time Notifications**: Center-screen modal alerts when bot protection is detected with actionable solution suggestions
+- **Comprehensive Logging**: Human-readable logging system capturing detection events, request rates, and configuration settings for admin submission
+- **Solution Suggestions**: Intelligent remediation system with user-configurable options for user agent rotation, request delays, header randomization, and platform-specific workarounds
+- **Integration Testing**: Live testing framework validating detection accuracy against real Amazon/Walmart protection measures
 
 ### Component Architecture
 - **Modular Design**: Reusable UI components with clear separation of concerns
