@@ -1,6 +1,7 @@
 import { parentPort } from 'worker_threads';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
+import { logAntiBotEvent, logScrapingRequest, initAntiBotLogger } from './antibot-logger';
 
 interface ScrapingTask {
   id: string;
@@ -30,7 +31,30 @@ interface ScrapingResult {
   productName?: string;
   error?: string;
   antiBot?: AntiBotDetectionResult;
+  requestStats?: {
+    responseTime: number;
+    responseCode: number;
+    userAgent: string;
+    headers: Record<string, string>;
+  };
 }
+
+// Initialize anti-bot logger for this worker
+const antiBotLogger = initAntiBotLogger();
+
+// Log initial configuration when worker starts
+antiBotLogger.logConfigurationChange('Scraping Worker Initialized', {
+  timeout: 30000,
+  maxRedirects: 5,
+  keepAlive: true,
+  maxSockets: 5
+}, [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15'
+]);
 
 // Worker-specific axios instance with connection pooling
 const workerAxios = axios.create({
@@ -588,7 +612,10 @@ async function scrapeWithRetry(task: ScrapingTask): Promise<ScrapingResult> {
       const startTime = Date.now();
       const antiBot = detectAntiBot(responseData, url, 200, Date.now() - startTime, {});
       
+      // Log detection event if blocked
       if (antiBot.isBlocked) {
+        logAntiBotEvent(antiBot, url, 'Pre-provided data', {});
+        logScrapingRequest(platform, false, Date.now() - startTime, 200, 'Pre-provided data');
         return {
           id,
           success: false,
@@ -596,6 +623,9 @@ async function scrapeWithRetry(task: ScrapingTask): Promise<ScrapingResult> {
           antiBot
         };
       }
+      
+      // Log successful parsing
+      logScrapingRequest(platform, true, Date.now() - startTime, 200, 'Pre-provided data');
       
       const productName = extractProductName(responseData, platform);
       
@@ -655,6 +685,11 @@ async function scrapeWithRetry(task: ScrapingTask): Promise<ScrapingResult> {
       // Use comprehensive anti-bot detection
       const antiBot = detectAntiBot(response.data, url, response.status, requestTime, response.headers as Record<string, string> || {});
       
+      // Log anti-bot detection event
+      if (antiBot.isBlocked) {
+        logAntiBotEvent(antiBot, url, userAgent, requestHeaders);
+      }
+      
       if (antiBot.isBlocked) {
         if (attempt < maxRetries) {
           // Use detection-specific retry strategies
@@ -685,11 +720,19 @@ async function scrapeWithRetry(task: ScrapingTask): Promise<ScrapingResult> {
           await new Promise(resolve => setTimeout(resolve, finalDelay));
           continue;
         } else {
+          // Log final failure due to anti-bot protection
+          logScrapingRequest(platform, false, requestTime, response.status, userAgent);
           return {
             id,
             success: false,
             error: `Product blocked by ${antiBot.detectionType} protection (confidence: ${(antiBot.confidence * 100).toFixed(1)}%). ${antiBot.suggestedAction}`,
-            antiBot
+            antiBot,
+            requestStats: {
+              responseTime: requestTime,
+              responseCode: response.status,
+              userAgent,
+              headers: requestHeaders
+            }
           };
         }
       }
@@ -697,21 +740,37 @@ async function scrapeWithRetry(task: ScrapingTask): Promise<ScrapingResult> {
       const productName = extractProductName(response.data, platform);
 
       if (productName) {
+        // Log successful scraping
+        logScrapingRequest(platform, true, requestTime, response.status, userAgent);
         return {
           id,
           success: true,
           productName,
-          antiBot // Include detection data even for successful requests
+          antiBot, // Include detection data even for successful requests
+          requestStats: {
+            responseTime: requestTime,
+            responseCode: response.status,
+            userAgent,
+            headers: requestHeaders
+          }
         };
       } else {
         if (attempt < maxRetries) {
           continue;
         } else {
+          // Log failed scraping (no product name found)
+          logScrapingRequest(platform, false, requestTime, response.status, userAgent);
           return {
             id,
             success: false,
             error: "No product name found after all retries",
-            antiBot // Include detection data for failed scraping
+            antiBot, // Include detection data for failed scraping
+            requestStats: {
+              responseTime: requestTime,
+              responseCode: response.status,
+              userAgent,
+              headers: requestHeaders
+            }
           };
         }
       }

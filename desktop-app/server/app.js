@@ -10,6 +10,91 @@ const cron = require('node-cron');
 const { StandaloneStorage } = require('./database.js');
 const emailService = require('./email.js');
 
+// Anti-bot logging utilities for desktop app
+class DesktopAntiBotLogger {
+  constructor() {
+    this.logsDir = path.join(__dirname, '..', '..', 'logs', 'antibot');
+    this.ensureLogsDir();
+    this.requestStats = new Map();
+  }
+
+  ensureLogsDir() {
+    if (!fs.existsSync(this.logsDir)) {
+      fs.mkdirSync(this.logsDir, { recursive: true });
+    }
+  }
+
+  getLogFilePaths() {
+    const today = new Date().toISOString().split('T')[0];
+    return {
+      detectionEvents: path.join(this.logsDir, `detection-events-${today}.log`),
+      configuration: path.join(this.logsDir, `configuration-${today}.log`),
+      requestStats: path.join(this.logsDir, `request-stats-${today}.log`),
+      directory: this.logsDir
+    };
+  }
+
+  async getLogContent(type, date) {
+    const logFile = path.join(this.logsDir, `${type}-${date}.log`);
+    try {
+      return await fs.promises.readFile(logFile, 'utf-8');
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async generateDesktopReport() {
+    const today = new Date().toISOString().split('T')[0];
+    let report = `STOCK MONITOR DESKTOP - ANTI-BOT DETECTION REPORT\n`;
+    report += `Generated: ${new Date().toISOString()}\n`;
+    report += `Platform: Desktop Application\n`;
+    report += `Node Version: ${process.version}\n`;
+    report += `${'='.repeat(60)}\n\n`;
+
+    // Try to read recent logs
+    const logTypes = ['detection-events', 'configuration', 'request-stats'];
+    const logPaths = this.getLogFilePaths();
+
+    report += `LOG FILE SUMMARY:\n`;
+    for (const type of logTypes) {
+      const logPath = path.join(this.logsDir, `${type}-${today}.log`);
+      try {
+        const stats = await fs.promises.stat(logPath);
+        report += `${type}: Found (${(stats.size / 1024).toFixed(2)} KB)\n`;
+      } catch {
+        report += `${type}: No log file found\n`;
+      }
+    }
+
+    report += `\n${'='.repeat(60)}\n`;
+    report += `LOG DIRECTORY: ${this.logsDir}\n`;
+    report += `Please zip and submit the entire logs/antibot folder.\n`;
+
+    return report;
+  }
+
+  logDetectionEvent(detectionData) {
+    const today = new Date().toISOString().split('T')[0];
+    const logFile = path.join(this.logsDir, `detection-events-${today}.log`);
+    const timestamp = new Date().toISOString();
+    
+    const logEntry = `\n${'='.repeat(60)}\n` +
+                     `🚨 DESKTOP ANTI-BOT DETECTION\n` +
+                     `Time: ${timestamp}\n` +
+                     `Platform: ${detectionData.platform || 'Unknown'}\n` +
+                     `URL: ${detectionData.url || 'Unknown'}\n` +
+                     `Detection: ${detectionData.detection || 'Challenge page detected'}\n` +
+                     `User Agent: ${detectionData.userAgent || 'Unknown'}\n` +
+                     `Response Code: ${detectionData.responseCode || 'Unknown'}\n` +
+                     `Response Time: ${detectionData.responseTime || 'Unknown'}ms\n` +
+                     `${'='.repeat(60)}\n`;
+
+    fs.appendFileSync(logFile, logEntry);
+  }
+}
+
+const desktopAntiBotLogger = new DesktopAntiBotLogger();
+
 // Initialize app and database
 const app = express();
 let storage;
@@ -43,8 +128,8 @@ function getRandomUserAgent() {
   return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
 }
 
-// Challenge detection
-function detectChallengePage(html, url) {
+// Enhanced challenge detection with logging integration
+function detectChallengePage(html, url, userAgent, responseCode, responseTime) {
   const challengeIndicators = [
     'Robot Check', 'Robot or human?', 'Something went wrong',
     'To discuss automated access', 'automated queries', 'unusual traffic',
@@ -53,9 +138,25 @@ function detectChallengePage(html, url) {
   ];
   
   const lowerHtml = html.toLowerCase();
-  return challengeIndicators.some(indicator => 
+  const detectedIndicators = challengeIndicators.filter(indicator => 
     lowerHtml.includes(indicator.toLowerCase())
   );
+  
+  const isBlocked = detectedIndicators.length > 0;
+  
+  if (isBlocked) {
+    // Log the detection event
+    desktopAntiBotLogger.logDetectionEvent({
+      platform: url.includes('amazon') ? 'amazon' : url.includes('walmart') ? 'walmart' : 'unknown',
+      url,
+      detection: `Challenge page detected: [${detectedIndicators.join(', ')}]`,
+      userAgent,
+      responseCode,
+      responseTime
+    });
+  }
+  
+  return isBlocked;
 }
 
 // Enhanced scraping function
@@ -82,13 +183,15 @@ async function scrapeProduct(url, platform, maxRetries = 3) {
         'Referer': 'https://www.google.com/'
       };
       
+      const requestStart = Date.now();
       const response = await axios.get(url, {
         headers,
         timeout: 30000,
         maxRedirects: 5
       });
+      const requestTime = Date.now() - requestStart;
       
-      if (detectChallengePage(response.data, url)) {
+      if (detectChallengePage(response.data, url, headers['User-Agent'], response.status, requestTime)) {
         if (attempt < maxRetries) {
           const challengeDelay = Math.pow(2, attempt) * 2000 + Math.random() * 2000;
           console.log(`Challenge detected, backing off for ${Math.round(challengeDelay)}ms...`);
@@ -313,6 +416,104 @@ app.delete('/api/products/:id', (req, res) => {
     res.json({ success: true });
   } else {
     res.status(404).json({ error: 'Product not found' });
+  }
+});
+
+// Anti-bot logging API endpoints for desktop app
+app.get('/api/antibot/stats', (req, res) => {
+  res.json({ 
+    success: true, 
+    stats: {
+      message: 'Desktop anti-bot statistics',
+      logsDirectory: desktopAntiBotLogger.logsDir,
+      logFiles: desktopAntiBotLogger.getLogFilePaths()
+    }
+  });
+});
+
+app.get('/api/antibot/log-paths', (req, res) => {
+  const paths = desktopAntiBotLogger.getLogFilePaths();
+  res.json({ success: true, paths });
+});
+
+app.get('/api/antibot/admin-report', async (req, res) => {
+  try {
+    const report = await desktopAntiBotLogger.generateDesktopReport();
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Content-Disposition', 'attachment; filename=antibot-desktop-report.txt');
+    res.send(report);
+  } catch (error) {
+    console.error('Error generating desktop admin report:', error);
+    res.status(500).json({ error: 'Failed to generate admin report' });
+  }
+});
+
+app.get('/api/antibot/logs/:type', async (req, res) => {
+  try {
+    const { type } = req.params;
+    const { date } = req.query;
+    
+    if (!['detection-events', 'configuration', 'request-stats'].includes(type)) {
+      return res.status(400).json({ error: 'Invalid log type. Must be: detection-events, configuration, or request-stats' });
+    }
+    
+    const today = date || new Date().toISOString().split('T')[0];
+    const logContent = await desktopAntiBotLogger.getLogContent(type, today);
+    
+    if (logContent) {
+      res.setHeader('Content-Type', 'text/plain');
+      res.send(logContent);
+    } else {
+      res.status(404).json({ error: `No log file found for ${type} on ${today}` });
+    }
+  } catch (error) {
+    console.error('Error reading desktop log file:', error);
+    res.status(500).json({ error: 'Failed to read log file' });
+  }
+});
+
+// Open anti-bot logs folder for easy access
+app.post('/api/antibot/open-logs-folder', async (req, res) => {
+  try {
+    const logsDir = desktopAntiBotLogger.logsDir;
+    
+    // Ensure directory exists
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+    
+    const { exec } = require('child_process');
+    const platform = process.platform;
+    let command = '';
+    
+    if (platform === 'win32') {
+      command = `explorer "${logsDir}"`;
+    } else if (platform === 'darwin') {
+      command = `open "${logsDir}"`;
+    } else {
+      command = `xdg-open "${logsDir}"`;
+    }
+    
+    exec(command, (error) => {
+      if (error) {
+        console.log('Could not open logs folder:', error.message);
+        res.json({ 
+          success: true, 
+          message: 'Logs folder ready for access',
+          path: logsDir,
+          note: 'Could not auto-open folder, please navigate manually'
+        });
+      } else {
+        res.json({ 
+          success: true, 
+          message: 'Anti-bot logs folder opened',
+          path: logsDir
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Error accessing logs folder:', error);
+    res.status(500).json({ error: 'Failed to access logs folder' });
   }
 });
 

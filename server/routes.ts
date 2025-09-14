@@ -1,4 +1,7 @@
 import type { Express } from "express";
+import { getAntiBotLogger } from './antibot-logger';
+import fs from 'fs/promises';
+import path from 'path';
 import { createServer, type Server } from "http";
 import axios from "axios";
 import * as cheerio from "cheerio";
@@ -805,6 +808,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting performance history:", error);
       res.status(500).json({ error: "Failed to get performance history" });
+    }
+  });
+
+  // Anti-Bot Logging API endpoints
+  app.get("/api/antibot/stats", async (req, res) => {
+    try {
+      const antiBotLogger = getAntiBotLogger();
+      const stats = antiBotLogger.getRequestStats();
+      res.json({ success: true, stats });
+    } catch (error) {
+      console.error("Error getting anti-bot stats:", error);
+      res.status(500).json({ error: "Failed to get anti-bot statistics" });
+    }
+  });
+
+  app.get("/api/antibot/log-paths", async (req, res) => {
+    try {
+      const antiBotLogger = getAntiBotLogger();
+      const paths = antiBotLogger.getLogFilePaths();
+      res.json({ success: true, paths });
+    } catch (error) {
+      console.error("Error getting log paths:", error);
+      res.status(500).json({ error: "Failed to get log file paths" });
+    }
+  });
+
+  app.get("/api/antibot/admin-report", async (req, res) => {
+    try {
+      const antiBotLogger = getAntiBotLogger();
+      const report = await antiBotLogger.generateAdminReport();
+      
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', 'attachment; filename=antibot-report.txt');
+      res.send(report);
+    } catch (error) {
+      console.error("Error generating admin report:", error);
+      res.status(500).json({ error: "Failed to generate admin report" });
+    }
+  });
+
+  app.get("/api/antibot/logs/:type", async (req, res) => {
+    try {
+      const { type } = req.params;
+      const { date } = req.query;
+      
+      if (!['detection-events', 'configuration', 'request-stats'].includes(type)) {
+        return res.status(400).json({ error: "Invalid log type. Must be: detection-events, configuration, or request-stats" });
+      }
+      
+      const today = (date as string) || new Date().toISOString().split('T')[0];
+      const antiBotLogger = getAntiBotLogger();
+      const logDir = antiBotLogger.getLogFilePaths().directory;
+      const logFile = path.join(logDir, `${type}-${today}.log`);
+      
+      try {
+        const logContent = await fs.readFile(logFile, 'utf-8');
+        res.setHeader('Content-Type', 'text/plain');
+        res.send(logContent);
+      } catch (fileError: any) {
+        if (fileError.code === 'ENOENT') {
+          res.status(404).json({ error: `No log file found for ${type} on ${today}` });
+        } else {
+          throw fileError;
+        }
+      }
+    } catch (error) {
+      console.error("Error reading log file:", error);
+      res.status(500).json({ error: "Failed to read log file" });
     }
   });
 
