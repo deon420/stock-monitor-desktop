@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AuthChoiceModal } from "@/components/AuthChoiceModal";
+import DemoModal from "@/components/DemoModal";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Monitor, 
   Zap, 
@@ -31,6 +33,9 @@ import {
 export default function LandingPage() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'choice' | 'signup' | 'login'>('choice');
+  const [demoModalOpen, setDemoModalOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const [, setLocation] = useLocation();
 
   const openSignupModal = () => {
     setAuthModalMode('signup');
@@ -45,6 +50,16 @@ export default function LandingPage() {
   const openAuthChoiceModal = () => {
     setAuthModalMode('choice');
     setAuthModalOpen(true);
+  };
+
+  const handleDemoClick = () => {
+    if (isMobile) {
+      // Mobile: Navigate to dashboard page
+      setLocation('/dashboard');
+    } else {
+      // Desktop: Open demo modal
+      setDemoModalOpen(true);
+    }
   };
 
   return (
@@ -118,12 +133,10 @@ export default function LandingPage() {
                 variant="outline" 
                 size="lg" 
                 className="text-lg px-8 py-3"
-                asChild
+                onClick={handleDemoClick}
                 data-testid="button-hero-demo"
               >
-                <Link href="/dashboard">
-                  See Demo 👀
-                </Link>
+                See Demo 👀
               </Button>
             </div>
             <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground pt-4">
@@ -660,6 +673,12 @@ export default function LandingPage() {
         open={authModalOpen}
         onOpenChange={setAuthModalOpen}
         defaultMode={authModalMode}
+      />
+
+      {/* Demo Modal - Desktop Only */}
+      <DemoModal 
+        isOpen={demoModalOpen}
+        onClose={() => setDemoModalOpen(false)}
       />
     </div>
   );
