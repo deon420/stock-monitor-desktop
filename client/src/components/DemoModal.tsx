@@ -35,7 +35,7 @@ export default function DemoModal({ isOpen, onClose }: DemoModalProps) {
         </VisuallyHidden>
 
         {/* Dashboard Content */}
-        <div className="flex-1 overflow-hidden bg-background">
+        <div className="flex-1 overflow-auto bg-background">
           <Dashboard />
         </div>
       </DialogContent>
