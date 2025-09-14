@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ThemeToggle } from "./ThemeToggle"
 import { Activity, Search, Filter, Plus, Settings, Play, Square, Bell } from "lucide-react"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { cn } from "@/lib/utils"
 
 interface DashboardHeaderProps {
   onAddProduct?: () => void
@@ -30,6 +32,7 @@ export default function DashboardHeader({
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedPlatform, setSelectedPlatform] = useState<string>("all")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
+  const isMobile = useIsMobile()
 
   const handleSearch = (query: string) => {
     setSearchQuery(query)
@@ -65,14 +68,25 @@ export default function DashboardHeader({
   return (
     <div className="space-y-4">
       {/* Title and Status */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Stock Monitor 😎</h1>
-          <p className="text-muted-foreground">
+      <div className={cn(
+        "flex items-center",
+        isMobile ? "flex-col gap-3" : "justify-between"
+      )}>
+        <div className={cn(isMobile ? "text-center" : "")}>
+          <h1 className={cn(
+            "font-bold tracking-tight",
+            isMobile ? "text-2xl" : "text-3xl"
+          )}>
+            Stock Monitor 😎
+          </h1>
+          <p className="text-muted-foreground text-sm">
             Track Amazon & Walmart product availability and prices
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className={cn(
+          "flex items-center gap-2",
+          isMobile ? "w-full justify-center" : "gap-4"
+        )}>
           <div className="flex items-center gap-2">
             <Activity className={`w-5 h-5 ${isMonitoring ? 'text-green-500 animate-pulse' : 'text-gray-400'}`} />
             <Badge variant={isMonitoring ? "default" : "secondary"} className="h-8 flex items-center">
@@ -91,9 +105,17 @@ export default function DashboardHeader({
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-row gap-4 items-center justify-between">
-        <div className="flex flex-1 items-center gap-4 max-w-2xl">
+      {/* Controls - Mobile Responsive Layout */}
+      <div className={cn(
+        "flex gap-4",
+        isMobile ? "flex-col space-y-3" : "flex-row items-center justify-between"
+      )}>
+        {/* Search and Filters */}
+        <div className={cn(
+          "flex gap-3",
+          isMobile ? "flex-col w-full" : "flex-1 items-center gap-4 max-w-2xl"
+        )}>
+          {/* Search Input */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
@@ -105,10 +127,17 @@ export default function DashboardHeader({
             />
           </div>
           
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-muted-foreground" />
+          {/* Filters */}
+          <div className={cn(
+            "flex items-center gap-2",
+            isMobile ? "w-full" : ""
+          )}>
+            <Filter className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <Select value={selectedPlatform} onValueChange={handlePlatformChange}>
-              <SelectTrigger className="w-32" data-testid="filter-platform">
+              <SelectTrigger 
+                className={cn("min-w-0", isMobile ? "flex-1" : "w-32")} 
+                data-testid="filter-platform"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -119,7 +148,10 @@ export default function DashboardHeader({
             </Select>
             
             <Select value={selectedStatus} onValueChange={handleStatusChange}>
-              <SelectTrigger className="w-32" data-testid="filter-status">
+              <SelectTrigger 
+                className={cn("min-w-0", isMobile ? "flex-1" : "w-32")} 
+                data-testid="filter-status"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -132,37 +164,47 @@ export default function DashboardHeader({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onShowNotifications}
-            className="relative"
-            data-testid="button-notifications"
-          >
-            <Bell className="w-4 h-4" />
-            {notificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
-                {notificationCount > 9 ? '9+' : notificationCount}
-              </span>
-            )}
-          </Button>
+        {/* Action Buttons */}
+        <div className={cn(
+          "flex items-center gap-2",
+          isMobile ? "w-full justify-between" : ""
+        )}>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onShowNotifications}
+              className="relative"
+              data-testid="button-notifications"
+            >
+              <Bell className="w-4 h-4" />
+              {notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                  {notificationCount > 9 ? '9+' : notificationCount}
+                </span>
+              )}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onShowSettings}
+              data-testid="button-settings"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+            
+            <ThemeToggle />
+          </div>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onShowSettings}
-            data-testid="button-settings"
+          <Button 
+            onClick={handleAddProduct} 
+            data-testid="button-add-product"
+            className={cn(isMobile ? "flex-1 ml-2" : "")}
           >
-            <Settings className="w-4 h-4" />
-          </Button>
-          
-          <Button onClick={handleAddProduct} data-testid="button-add-product">
             <Plus className="w-4 h-4 mr-2" />
             Add Product
           </Button>
-          
-          <ThemeToggle />
         </div>
       </div>
     </div>

@@ -18,6 +18,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient"
 import { audioPlayer } from "@/utils/audioPlayer"
 import { isDesktopApp } from "@/lib/desktopDataProvider"
 import { Settings as SettingsData, UpdateSettings } from "@shared/schema"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { cn } from "@/lib/utils"
 
 interface SettingsProps {
   isOpen: boolean
@@ -43,6 +45,7 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
   const [simulatingStock, setSimulatingStock] = useState(false)
   const [simulatingPrice, setSimulatingPrice] = useState(false)
   const [openingFolder, setOpeningFolder] = useState(false)
+  const isMobile = useIsMobile()
   const { toast } = useToast()
 
   // Visual-only anti-bot settings for demo (no backend functionality)
@@ -408,7 +411,10 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
 
   const EmailHelp = () => (
     <Dialog open={showEmailHelp} onOpenChange={setShowEmailHelp}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className={cn(
+        "max-h-[80vh] overflow-y-auto",
+        isMobile ? "max-w-[95vw] p-4" : "max-w-2xl"
+      )}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Mail className="w-5 h-5" />
@@ -482,7 +488,10 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
   if (isLoading) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className={cn(
+          "max-h-[85vh] overflow-y-auto",
+          isMobile ? "max-w-[95vw] p-4" : "max-w-4xl"
+        )}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <SettingsIcon className="w-5 h-5" />
@@ -506,18 +515,39 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className={cn(
+          "max-h-[85vh] overflow-y-auto",
+          isMobile ? "max-w-[95vw] p-3" : "max-w-4xl"
+        )}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className={cn(
+              "flex items-center gap-2",
+              isMobile ? "text-lg" : ""
+            )}>
               <SettingsIcon className="w-5 h-5" />
               Settings
             </DialogTitle>
           </DialogHeader>
 
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="general" data-testid="tab-general">General</TabsTrigger>
-              <TabsTrigger value="advanced" data-testid="tab-advanced">Advanced</TabsTrigger>
+            <TabsList className={cn(
+              "grid w-full grid-cols-2",
+              isMobile ? "h-12" : ""
+            )}>
+              <TabsTrigger 
+                value="general" 
+                data-testid="tab-general"
+                className={cn(isMobile ? "text-sm" : "")}
+              >
+                General
+              </TabsTrigger>
+              <TabsTrigger 
+                value="advanced" 
+                data-testid="tab-advanced"
+                className={cn(isMobile ? "text-sm" : "")}
+              >
+                Advanced
+              </TabsTrigger>
             </TabsList>
 
             {/* General Settings */}
@@ -1353,7 +1383,10 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
 
       {/* Secret Unlock Dialog */}
       <Dialog open={showUnlockDialog} onOpenChange={setShowUnlockDialog}>
-        <DialogContent className="max-w-md fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-in fade-in-0 zoom-in-95 duration-200">
+        <DialogContent className={cn(
+          "fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-in fade-in-0 zoom-in-95 duration-200",
+          isMobile ? "max-w-[90vw] p-4" : "max-w-md"
+        )}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="w-4 h-4" />

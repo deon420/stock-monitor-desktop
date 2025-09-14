@@ -18,12 +18,14 @@ import { useNotifications } from "@/contexts/NotificationsContext"
 import { useDataProvider } from "@/contexts/DataProviderContext"
 import { Product, ProductInput, AppSettings } from "@/lib/dataProvider"
 import { WebDemoDataProvider } from "@/lib/webDemoDataProvider"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { cn } from "@/lib/utils"
 
 
 export default function Dashboard() {
   // Use DataProvider context
   const { dataProvider, isReady, providerType, error: providerError } = useDataProvider()
-  
+  const isMobile = useIsMobile()
   
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
@@ -421,7 +423,13 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-4 gap-4">
+              {/* Mobile-responsive product grid */}
+              <div className={cn(
+                "grid gap-4",
+                isMobile 
+                  ? "grid-cols-1 gap-3" 
+                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              )}>
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}

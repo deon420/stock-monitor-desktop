@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Link as LinkIcon, Hash } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface AddProductFormProps {
   onAddProduct?: (product: {
@@ -22,6 +23,7 @@ export default function AddProductForm({ onAddProduct, isLoading }: AddProductFo
   const [asin, setAsin] = useState("")
   const [productName, setProductName] = useState("")
   const [detectedPlatform, setDetectedPlatform] = useState<"amazon" | "walmart" | null>(null)
+  const isMobile = useIsMobile()
 
   const detectPlatform = (inputUrl: string): "amazon" | "walmart" | null => {
     if (inputUrl.includes('amazon.com')) return "amazon"
@@ -108,26 +110,33 @@ export default function AddProductForm({ onAddProduct, isLoading }: AddProductFo
 
   return (
     <Card data-testid="add-product-form">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
+      <CardHeader className={cn(isMobile ? "p-4 pb-3" : "")}>
+        <CardTitle className={cn(
+          "flex items-center gap-2",
+          isMobile ? "text-base" : "text-lg"
+        )}>
           <Plus className="w-5 h-5" />
           Add Product to Monitor
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className={cn(
+          "text-muted-foreground",
+          isMobile ? "text-xs" : "text-sm"
+        )}>
           Add products by entering the product name and URL (Amazon/Walmart) or ASIN (Amazon)
         </p>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent className={cn(isMobile ? "p-4 pt-0" : "")}>
+        <form onSubmit={handleSubmit} className={cn(isMobile ? "space-y-4" : "space-y-6")}>
           {/* Product Name Input */}
           <div className="space-y-2">
             <Label htmlFor="product-name" className="font-medium">Product Name</Label>
             <Input
               id="product-name"
-              placeholder="Enter the product name you want to monitor"
+              placeholder={isMobile ? "Product name..." : "Enter the product name you want to monitor"}
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
               data-testid="input-product-name"
+              className={cn(isMobile ? "h-11" : "")}
               required
             />
             <p className="text-xs text-muted-foreground">
@@ -149,10 +158,11 @@ export default function AddProductForm({ onAddProduct, isLoading }: AddProductFo
             <div className="space-y-2">
               <Input
                 id="asin-input"
-                placeholder="Enter 10-character ASIN (e.g., B07ABC123XYZ)"
+                placeholder={isMobile ? "ASIN (e.g., B07ABC123XYZ)" : "Enter 10-character ASIN (e.g., B07ABC123XYZ)"}
                 value={asin}
                 onChange={(e) => handleAsinChange(e.target.value)}
                 data-testid="input-asin"
+                className={cn(isMobile ? "h-11" : "")}
                 maxLength={10}
               />
               <p className="text-xs text-muted-foreground">
@@ -176,10 +186,11 @@ export default function AddProductForm({ onAddProduct, isLoading }: AddProductFo
             <div className="space-y-2">
               <Input
                 id="url-input"
-                placeholder="Paste Amazon or Walmart product URL here"
+                placeholder={isMobile ? "Product URL (Amazon/Walmart)" : "Paste Amazon or Walmart product URL here"}
                 value={url}
                 onChange={(e) => handleUrlChange(e.target.value)}
                 data-testid="input-product-url"
+                className={cn(isMobile ? "h-11" : "")}
               />
               <p className="text-xs text-muted-foreground">
                 Supports Amazon and Walmart product URLs
@@ -208,7 +219,10 @@ export default function AddProductForm({ onAddProduct, isLoading }: AddProductFo
 
           <Button 
             type="submit" 
-            className="w-full" 
+            className={cn(
+              "w-full",
+              isMobile ? "h-12 text-base" : ""
+            )}
             disabled={!isValid || isLoading}
             data-testid="button-add-product"
           >

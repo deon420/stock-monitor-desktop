@@ -8,6 +8,7 @@ import PriceDisplay from "./PriceDisplay"
 import NotificationSettingsModal from "./NotificationSettingsModal"
 import { cn } from "@/lib/utils"
 import { formatTimeAgo } from "@/utils/timeUtils"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface ProductCardProps {
   id: string
@@ -48,6 +49,7 @@ export default function ProductCard({
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [isViewingHistory, setIsViewingHistory] = useState(false)
+  const isMobile = useIsMobile()
   
   const handleEdit = () => {
     if (isEditing) return // Prevent double clicks
@@ -151,49 +153,80 @@ export default function ProductCard({
           )}
         </div>
 
-        <div className="flex justify-center items-center gap-1 pt-2">
+        {/* Mobile-responsive button layout */}
+        <div className={cn(
+          "pt-2",
+          isMobile 
+            ? "grid grid-cols-3 gap-2" 
+            : "flex justify-center items-center gap-1"
+        )}>
           <Button 
             variant="ghost" 
-            size="icon" 
+            size={isMobile ? "sm" : "icon"}
             onClick={handleNotificationSettings}
             data-testid={`button-settings-${id}`}
+            className={cn(
+              "flex items-center justify-center",
+              isMobile ? "h-10 w-full" : ""
+            )}
           >
             <Settings className="w-4 h-4" />
+            {isMobile && <span className="ml-1 text-xs">Settings</span>}
           </Button>
           <Button 
             variant="ghost" 
-            size="icon" 
+            size={isMobile ? "sm" : "icon"}
             onClick={handleEdit}
             disabled={isEditing}
             data-testid={`button-edit-${id}`}
+            className={cn(
+              "flex items-center justify-center",
+              isMobile ? "h-10 w-full" : ""
+            )}
           >
             <Edit className="w-4 h-4" />
+            {isMobile && <span className="ml-1 text-xs">Edit</span>}
           </Button>
           <Button 
             variant="ghost" 
-            size="icon" 
+            size={isMobile ? "sm" : "icon"}
             onClick={handleDelete}
             disabled={isDeleting}
             data-testid={`button-delete-${id}`}
+            className={cn(
+              "flex items-center justify-center",
+              isMobile ? "h-10 w-full" : ""
+            )}
           >
             <Trash2 className="w-4 h-4" />
+            {isMobile && <span className="ml-1 text-xs">Delete</span>}
           </Button>
           <Button 
             variant="ghost" 
-            size="icon" 
+            size={isMobile ? "sm" : "icon"}
             onClick={handleViewHistory}
             disabled={isViewingHistory}
             data-testid={`button-history-${id}`}
+            className={cn(
+              "flex items-center justify-center",
+              isMobile ? "h-10 w-full col-span-1" : ""
+            )}
           >
             <TrendingDown className="w-4 h-4" />
+            {isMobile && <span className="ml-1 text-xs">History</span>}
           </Button>
           <Button 
             variant="ghost" 
-            size="icon" 
+            size={isMobile ? "sm" : "icon"}
             onClick={handleOpenUrl}
             data-testid={`button-open-${id}`}
+            className={cn(
+              "flex items-center justify-center",
+              isMobile ? "h-10 w-full col-span-2" : ""
+            )}
           >
             <ExternalLink className="w-4 h-4" />
+            {isMobile && <span className="ml-1 text-xs">Open Product</span>}
           </Button>
         </div>
       </CardContent>
