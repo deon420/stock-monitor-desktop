@@ -30,7 +30,8 @@
     ],
     "win": {
       "target": "nsis",
-      "publisherName": "Stock Monitor"
+      "publisherName": "Stock Monitor",
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -46,7 +47,11 @@
       "menuCategory": "Productivity",
       "unicode": true,
       "warningsAsErrors": false,
-      "displayLanguageSelector": false
+      "displayLanguageSelector": false,
+      "installerHeader": "assets/installerHeader.bmp",
+      "installerSidebar": "assets/installerSidebar.bmp",
+      "uninstallerHeader": "assets/uninstallerHeader.bmp",
+      "uninstallerSidebar": "assets/uninstallerSidebar.bmp"
     },
     "publish": {
       "provider": "github",
