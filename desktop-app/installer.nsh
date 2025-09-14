@@ -20,10 +20,7 @@ BrandingText "Made by one person who cares"
 !define MUI_FINISHPAGE_TITLE "You're all set! 🎉"
 !define MUI_FINISHPAGE_TEXT "Stock Monitor is now ready to help you track deals and stock availability. Thanks for supporting a solo developer!$\r$\n$\r$\nClick Finish to start monitoring those prices and inventory levels."
 
-; Enable run checkbox on finish page (let electron-builder handle the executable name)
-!define MUI_FINISHPAGE_RUN
-!define MUI_FINISHPAGE_RUN_TEXT "Launch Stock Monitor now"
-!define MUI_FINISHPAGE_RUN_CHECKED
+; Run checkbox handled automatically by electron-builder via runAfterFinish: true
 
 ; Custom uninstall confirmation
 !define MUI_UNCONFIRMPAGE_TEXT_TOP "Sorry to see you go! Stock Monitor will be removed from your computer."
