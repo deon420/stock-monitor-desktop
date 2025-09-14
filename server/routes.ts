@@ -32,6 +32,7 @@ import { or, ilike, inArray, count, eq, desc, and, gt, lt, isNull } from "drizzl
 import { httpPool } from "./http-pool";
 import { performanceMonitor } from "./performance-monitor";
 import { setupAuthTestRoutes } from "./test-auth";
+import { setupAntiBotTestingRoutes } from "./antibot-testing-routes";
 
 // Product monitoring scheduler
 interface MonitoredProduct {
@@ -306,7 +307,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup comprehensive authorization testing routes (if in development)
   if (process.env.NODE_ENV !== 'production') {
     setupAuthTestRoutes(app);
+    setupAntiBotTestingRoutes(app);
     logger.info('Authorization test routes enabled for development/testing');
+    logger.info('Anti-bot testing routes enabled for development/testing');
   }
 
   // ======================

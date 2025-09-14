@@ -18,6 +18,7 @@ import Dashboard from "@/components/Dashboard";
 import NotificationHistoryPage from "@/pages/NotificationHistoryPage";
 import AdminDashboard from "@/pages/AdminDashboard";
 import NotFound from "@/pages/not-found";
+import AntiBotTestingPage from "@/pages/AntiBotTestingPage";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import type { AuthResponse } from "@shared/schema";
@@ -65,6 +66,7 @@ function AuthenticatedRouter() {
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/notifications" component={NotificationHistoryPage} />
         <Route path="/admin" component={AdminDashboard} />
+        <Route path="/antibot-testing" component={AntiBotTestingPage} />
         <Route component={NotFound} />
       </Switch>
     </>
