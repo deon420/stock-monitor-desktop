@@ -27,12 +27,9 @@ BrandingText "Made by one person who cares"
 ; CUSTOM MACRO IMPLEMENTATIONS  
 ; ===============================
 
-; Branding and initial setup
+; Initial setup - Modern installer behavior
 !macro preInit
-  ; Set modern branding
-  BrandingText "Made by one person who cares"
-  
-  ; Modern installer behavior
+  ; Modern installer compression settings
   SetCompressor /SOLID lzma
   SetCompressorDictSize 32
   SetDatablockOptimize on
