@@ -3,10 +3,18 @@
 
 Unicode True
 RequestExecutionLevel admin
+Name "Stock Monitor Installer 1.0.0"
+OutFile "StockMonitor-Setup-1.0.0.exe"
+InstallDir "$PROGRAMFILES64\Stock Monitor"
 
 ; Modern UI
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
+
+; Modern UI Theme Settings
+!define MUI_UI "${NSISDIR}\Contrib\UIs\modern.exe"
+!define MUI_BGCOLOR "FFFFFF"
+!define MUI_TEXTCOLOR "000000"
 
 ; Branding
 BrandingText "Made by one person who cares"
@@ -19,9 +27,9 @@ BrandingText "Made by one person who cares"
 !define MUI_WELCOMEPAGE_TITLE "Welcome to Stock Monitor! 📈"
 !define MUI_WELCOMEPAGE_TEXT "Welcome! Stock Monitor was crafted by one person, trying to bring you the best monitoring experience possible. Thank you for trying it!$\r$\n$\r$\nTrack the two things that matter most: price drops AND stock availability. Perfect for deal hunters and resellers who need to know the moment items come back in stock!"
 
-; Custom directory page
-!define MUI_DIRECTORYPAGE_TEXT_TOP "We've picked a great spot for Stock Monitor. You can keep this default location or choose your own:"
-!define MUI_DIRECTORYPAGE_TEXT_DESTINATION "Install Stock Monitor to:"
+; Custom directory page with default location
+!define MUI_DIRECTORYPAGE_TEXT_TOP "Stock Monitor will be installed to the following folder. To install in a different folder, click Browse and select another folder. Click Next to continue."
+!define MUI_DIRECTORYPAGE_TEXT_DESTINATION "Destination Folder"
 
 ; Custom finish page - APPLIED BEFORE PAGE CREATION  
 !define MUI_FINISHPAGE_TITLE "You're all set! 🎉"
@@ -46,6 +54,10 @@ BrandingText "Made by one person who cares"
 
 ; Installation section - electron-builder handles the actual files
 Section "Install"
+  ; Set default install directory
+  StrCmp $INSTDIR "" 0 +2
+    StrCpy $INSTDIR "$PROGRAMFILES64\Stock Monitor"
+  
   ; electron-builder injects app installation here
 SectionEnd
 
