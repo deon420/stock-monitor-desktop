@@ -76,8 +76,7 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
     walmartCheckInterval: 10,
     enableRandomization: true,
     enableAudio: true,
-    priceDropSound: 'chime',
-    stockAlertSound: 'bell',
+    audioNotificationSound: 'chime',
     audioVolume: 80,
     enableEmail: false,
     gmailEmail: '',
@@ -165,7 +164,8 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
         description: "This is a visual demo - settings don't persist.",
         variant: "default",
       })
-    }
+    },
+    isPending: false
   }
 
   // Demo-only setting change handler (no backend calls)
