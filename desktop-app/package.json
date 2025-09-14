@@ -30,8 +30,7 @@
     ],
     "win": {
       "target": "nsis",
-      "publisherName": "Stock Monitor",
-      "icon": "assets/icon.ico"
+      "publisherName": "Stock Monitor"
     },
     "nsis": {
       "oneClick": false,
