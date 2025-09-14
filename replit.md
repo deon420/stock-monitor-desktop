@@ -2,7 +2,12 @@
 
 ## Overview
 
-This is a stock monitoring application that tracks product availability and prices across Amazon and Walmart. The application allows users to add products by URL or ASIN, monitor stock status changes, receive price drop notifications, and get email alerts when products become available. Built with a React frontend using shadcn/ui components and a Node.js/Express backend with web scraping capabilities.
+This is a stock monitoring application that tracks product availability and prices across Amazon and Walmart. The application comes in two versions:
+
+- **Web Demo**: A simple demonstration with add/delete product functionality that resets on page refresh - designed for potential customers to explore basic features
+- **Desktop Application**: Full-featured application with persistence, monitoring, email alerts, and comprehensive anti-bot detection system
+
+Both versions are built with a React frontend using shadcn/ui components and a Node.js/Express backend with web scraping capabilities.
 
 ## User Preferences
 
@@ -45,7 +50,7 @@ Preferred communication style: Simple, everyday language.
 - **Notification System**: Email alerts for stock availability and price changes
 - **Anti-Bot Detection**: Comprehensive detection system for identifying and responding to bot protection measures
 
-### Anti-Bot Detection System
+### Anti-Bot Detection System (Desktop App Only)
 - **Detection Engine**: Advanced detection algorithms identifying Cloudflare, AWS WAF, rate limiting, IP blocking, JavaScript challenges, and platform-specific protection measures
 - **Confidence Scoring**: AI-driven confidence levels (0-1 scale) for detection accuracy with detailed diagnostic information
 - **Real-Time Notifications**: Center-screen modal alerts when bot protection is detected with actionable solution suggestions
