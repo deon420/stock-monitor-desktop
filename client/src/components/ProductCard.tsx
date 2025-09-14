@@ -150,10 +150,10 @@ export default function ProductCard({
           )}
         </div>
 
-        <div className="flex gap-1 pt-2">
+        <div className="flex justify-center items-center gap-1 pt-2">
           <Button 
             variant="ghost" 
-            size="sm" 
+            size="icon" 
             onClick={handleNotificationSettings}
             data-testid={`button-settings-${id}`}
           >
@@ -161,7 +161,7 @@ export default function ProductCard({
           </Button>
           <Button 
             variant="ghost" 
-            size="sm" 
+            size="icon" 
             onClick={handleEdit}
             disabled={isEditing}
             data-testid={`button-edit-${id}`}
@@ -170,7 +170,7 @@ export default function ProductCard({
           </Button>
           <Button 
             variant="ghost" 
-            size="sm" 
+            size="icon" 
             onClick={handleDelete}
             disabled={isDeleting}
             data-testid={`button-delete-${id}`}
@@ -179,7 +179,7 @@ export default function ProductCard({
           </Button>
           <Button 
             variant="ghost" 
-            size="sm" 
+            size="icon" 
             onClick={handleViewHistory}
             disabled={isViewingHistory}
             data-testid={`button-history-${id}`}
@@ -188,7 +188,7 @@ export default function ProductCard({
           </Button>
           <Button 
             variant="ghost" 
-            size="sm" 
+            size="icon" 
             onClick={handleOpenUrl}
             data-testid={`button-open-${id}`}
           >
