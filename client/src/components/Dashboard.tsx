@@ -238,6 +238,24 @@ export default function Dashboard() {
     }
   })
 
+  // Delete product mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      if (isDesktop && desktopProvider) {
+        return await desktopProvider.deleteProduct(productId)
+      } else {
+        const response = await apiRequest('DELETE', `/api/products/${productId}`)
+        return await response.json()
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] })
+    },
+    onError: (error) => {
+      console.error('[Dashboard] Failed to delete product:', error)
+    }
+  })
+
   // Load settings for audio notifications
   const { data: audioSettings } = useQuery({
     queryKey: ['/api/settings'],
@@ -299,25 +317,25 @@ export default function Dashboard() {
   
   // Simulate a price drop (for demo purposes)
   const handleSimulatePriceDrop = async () => {
-    const eligibleProducts = products.filter(p => p.currentPrice && p.notifyForPrice)
+    const eligibleProducts = products.filter((p: Product) => p.currentPrice && p.notifyForPrice)
     if (eligibleProducts.length > 0) {
       const randomProduct = eligibleProducts[Math.floor(Math.random() * eligibleProducts.length)]
       const newPrice = Math.max(10, (randomProduct.currentPrice! * 0.8)) // 20% price drop
-      const updatedProducts = products.map(p => 
+      const updatedProducts = products.map((p: Product) => 
         p.id === randomProduct.id 
           ? { ...p, previousPrice: p.currentPrice, currentPrice: newPrice }
           : p
       )
-      setProducts(updatedProducts)
+      // For demo purposes, just update the filtered products (local state only)
       setFilteredProducts(updatedProducts)
-      setPriceDropAlert(updatedProducts.find(p => p.id === randomProduct.id) || null)
+      setPriceDropAlert(updatedProducts.find((p: Product) => p.id === randomProduct.id) || null)
       
-      // Play price drop audio notification
-      if (audioSettings?.enableAudio) {
+      // Play price drop audio notification if settings allow
+      if (settings?.enableAudio) {
         await audioPlayer.playPriceDropAlert({
-          enableAudio: audioSettings.enableAudio,
-          priceDropSound: audioSettings.audioNotificationSound || "chime",
-          audioVolume: audioSettings.audioVolume || 80
+          enableAudio: settings.enableAudio,
+          priceDropSound: settings.priceDropSound || "chime",
+          audioVolume: settings.audioVolume || 80
         })
       }
       
@@ -346,7 +364,7 @@ export default function Dashboard() {
 
   const handleEditProduct = (id: string) => {
     console.log('Edit product:', id)
-    const product = products.find(p => p.id === id)
+    const product = products.find((p: Product) => p.id === id)
     if (product) {
       setEditProduct(product)
     }
@@ -355,16 +373,14 @@ export default function Dashboard() {
   const handleDeleteProduct = (id: string) => {
     console.log('Delete product:', id)
     // Prevent double-deletion by checking if product still exists
-    if (!products.find(p => p.id === id)) return
+    if (!products.find((p: Product) => p.id === id)) return
     
-    const updatedProducts = products.filter(p => p.id !== id)
-    setProducts(updatedProducts)
-    filterProducts(searchQuery, {})
+    deleteProductMutation.mutate(id)
   }
 
   const handleViewHistory = (id: string) => {
     console.log('View history for product:', id)
-    const product = products.find(p => p.id === id)
+    const product = products.find((p: Product) => p.id === id)
     if (product) {
       setHistoryProduct(product)
     }
@@ -372,13 +388,8 @@ export default function Dashboard() {
 
   const handleNotificationSettingsChange = (productId: string, settings: { notifyForStock: boolean; notifyForPrice: boolean }) => {
     console.log('Updating notification settings for product:', productId, settings)
-    const updatedProducts = products.map(p => 
-      p.id === productId 
-        ? { ...p, notifyForStock: settings.notifyForStock, notifyForPrice: settings.notifyForPrice }
-        : p
-    )
-    setProducts(updatedProducts)
-    filterProducts(searchQuery, {})
+    // This would require an update product mutation - for now just log
+    console.log('Notification settings update not yet implemented')
   }
 
   const handleSettingsChange = (newSettings: any) => {
@@ -396,17 +407,14 @@ export default function Dashboard() {
 
   const handleSaveEditProduct = (id: string, updates: Partial<Product>) => {
     console.log('Saving product updates:', id, updates)
-    const updatedProducts = products.map(p => 
-      p.id === id ? { ...p, ...updates } : p
-    )
-    setProducts(updatedProducts)
-    filterProducts(searchQuery, {})
+    // This would require an update product mutation - for now just close the modal
+    console.log('Product edit functionality not yet fully implemented')
     setEditProduct(null)
   }
 
   // Calculate stats
-  const inStockCount = products.filter(p => p.status === "in-stock").length
-  const outOfStockCount = products.filter(p => p.status === "out-of-stock").length
+  const inStockCount = products.filter((p: Product) => p.status === "in-stock").length
+  const outOfStockCount = products.filter((p: Product) => p.status === "out-of-stock").length
 
   return (
     <div className="min-h-screen bg-background">
