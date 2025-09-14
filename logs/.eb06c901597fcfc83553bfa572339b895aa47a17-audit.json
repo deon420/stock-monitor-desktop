@@ -6,14 +6,9 @@
     "auditLog": "/home/runner/workspace/logs/.eb06c901597fcfc83553bfa572339b895aa47a17-audit.json",
     "files": [
         {
-            "date": 1757747554379,
-            "name": "/home/runner/workspace/logs/exceptions-2025-09-13.log",
-            "hash": "c74b6af5ca4e5b4997d686ee18a83e3efebc0321dab0bcf46dc0a5b619b1bc35"
-        },
-        {
-            "date": 1757808865579,
+            "date": 1757864910239,
             "name": "/home/runner/workspace/logs/exceptions-2025-09-14.log",
-            "hash": "ac375877638b50c9f30d42d222469c8f381db4b998622fea61da2851f422f86f"
+            "hash": "6deef802b7341d21da1cf4ea36e56c3cd9a91828cd60f94b1e148f6a48220102"
         }
     ],
     "hashType": "sha256"
