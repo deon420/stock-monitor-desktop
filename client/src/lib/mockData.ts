@@ -34,7 +34,7 @@ export const mockProducts: Product[] = [
     currentPrice: 39.99,
     previousPrice: 49.99,
     status: "out-of-stock" as const,
-    lastChecked: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    lastChecked: new Date(Date.now() - 8 * 60 * 1000), // 8 minutes ago
     notifyForStock: false,
     notifyForPrice: true
   },
@@ -70,7 +70,7 @@ export const mockProducts: Product[] = [
     currentPrice: 24.99,
     previousPrice: 29.99,
     status: "out-of-stock" as const,
-    lastChecked: new Date(Date.now() - 3 * 60 * 60 * 1000),
+    lastChecked: new Date(Date.now() - 12 * 60 * 1000), // 12 minutes ago
     notifyForStock: true,
     notifyForPrice: false
   },
@@ -94,7 +94,7 @@ export const mockProducts: Product[] = [
     currentPrice: 89.99,
     previousPrice: 129.99,
     status: "low-stock" as const,
-    lastChecked: new Date(Date.now() - 45 * 60 * 1000),
+    lastChecked: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
     notifyForStock: true,
     notifyForPrice: true
   },

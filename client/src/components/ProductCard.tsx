@@ -7,6 +7,7 @@ import StatusBadge from "./StatusBadge"
 import PriceDisplay from "./PriceDisplay"
 import NotificationSettingsModal from "./NotificationSettingsModal"
 import { cn } from "@/lib/utils"
+import { formatTimeAgo } from "@/utils/timeUtils"
 
 interface ProductCardProps {
   id: string
@@ -145,7 +146,7 @@ export default function ProductCard({
           {lastChecked && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="w-3 h-3" />
-              <span>Last checked: {lastChecked.toLocaleDateString()}</span>
+              <span>Last checked: {formatTimeAgo(lastChecked)}</span>
             </div>
           )}
         </div>
