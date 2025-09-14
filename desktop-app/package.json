@@ -35,15 +35,20 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": false,
+      "allowToChangeInstallationDirectory": true,
       "perMachine": false,
       "allowElevation": true,
-      "createDesktopShortcut": true,
+      "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "Stock Monitor",
       "include": "build/installer.nsh",
       "artifactName": "StockMonitor-Setup-${version}.${ext}",
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": true,
+      "runAfterFinish": true,
+      "menuCategory": "Productivity",
+      "unicode": true,
+      "warningsAsErrors": false,
+      "displayLanguageSelector": false
     },
     "publish": {
       "provider": "github",
