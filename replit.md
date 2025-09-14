@@ -9,6 +9,8 @@ This is a stock monitoring application that tracks product availability and pric
 
 Both versions are built with a React frontend using shadcn/ui components and a Node.js/Express backend with web scraping capabilities.
 
+**Recent Major Update (January 2025):** Successfully implemented modern custom GUI installer for the desktop application. After extensive debugging of electron-builder and NSIS configuration issues, resolved timing conflicts where custom UI elements weren't being applied. The installer now features personalized welcome and finish pages with custom branding and modern styling, moving away from the default Windows installer appearance.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
