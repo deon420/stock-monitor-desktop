@@ -30,8 +30,7 @@
     ],
     "win": {
       "target": "nsis",
-      "publisherName": "Stock Monitor",
-      "icon": "assets/icon.ico"
+      "publisherName": "Stock Monitor"
     },
     "nsis": {
       "oneClick": false,
@@ -47,9 +46,7 @@
       "menuCategory": "Productivity",
       "unicode": true,
       "warningsAsErrors": false,
-      "displayLanguageSelector": false,
-      "installerHeader": "assets/installerHeader.bmp",
-      "installerSidebar": "assets/installerSidebar.bmp"
+      "displayLanguageSelector": false
     },
     "publish": {
       "provider": "github",
@@ -73,6 +70,10 @@
     "electron": "^28.0.0",
     "electron-builder": "^24.9.1"
   },
-  "author": "Stock Monitor",
-  "license": "MIT"
+  "repository": {
+    "type": "git",
+    "url": "YOUR_REPOSITORY_URL"
+  },
+  "author": "Made by one person who cares",
+  "license": "ISC"
 }
