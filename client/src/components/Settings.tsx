@@ -24,6 +24,7 @@ interface SettingsProps {
   onClose: () => void
   onDemoStock?: () => void
   onDemoPrice?: () => void
+  onDemoAntiBot?: () => void
 }
 
 // Available sound options (only soft chime and notification)
@@ -32,7 +33,7 @@ const SOUND_OPTIONS = [
   { value: "notification", label: "Notification" }
 ]
 
-export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: SettingsProps) {
+export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice, onDemoAntiBot }: SettingsProps) {
   const [showEmailHelp, setShowEmailHelp] = useState(false)
   const [testingEmail, setTestingEmail] = useState(false)
   const [emailTestResult, setEmailTestResult] = useState<string | null>(null)
@@ -42,6 +43,7 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
   const [showUnlockDialog, setShowUnlockDialog] = useState(false)
   const [simulatingStock, setSimulatingStock] = useState(false)
   const [simulatingPrice, setSimulatingPrice] = useState(false)
+  const [simulatingAntiBot, setSimulatingAntiBot] = useState(false)
   const [openingFolder, setOpeningFolder] = useState(false)
   const { toast } = useToast()
 
@@ -330,6 +332,17 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
     // Reset button state
     setTimeout(() => setSimulatingPrice(false), 1000)
   }
+  
+  const handleSimulateAntiBot = () => {
+    if (simulatingAntiBot || !onDemoAntiBot) return
+    setSimulatingAntiBot(true)
+    
+    // Call the actual working demo function from Dashboard
+    onDemoAntiBot()
+    
+    // Reset button state
+    setTimeout(() => setSimulatingAntiBot(false), 1000)
+  }
 
   const EmailHelp = () => (
     <Dialog open={showEmailHelp} onOpenChange={setShowEmailHelp}>
@@ -530,7 +543,7 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
                     and visual notifications just like real stock changes and price drops.
                   </p>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-3">
                     <Button
                       onClick={handleSimulateStock}
                       disabled={simulatingStock}
@@ -543,7 +556,7 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
                       ) : (
                         <AlertTriangle className="w-4 h-4" />
                       )}
-                      {simulatingStock ? "Simulating..." : "Simulate Stock Alert"}
+                      {simulatingStock ? "Simulating..." : "Stock Alert"}
                     </Button>
                     
                     <Button
@@ -558,7 +571,22 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
                       ) : (
                         <Info className="w-4 h-4" />
                       )}
-                      {simulatingPrice ? "Simulating..." : "Simulate Price Drop"}
+                      {simulatingPrice ? "Simulating..." : "Price Drop"}
+                    </Button>
+                    
+                    <Button
+                      onClick={handleSimulateAntiBot}
+                      disabled={simulatingAntiBot}
+                      variant="outline"
+                      className="flex items-center justify-center gap-2 h-12"
+                      data-testid="button-simulate-anti-bot"
+                    >
+                      {simulatingAntiBot ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Shield className="w-4 h-4" />
+                      )}
+                      {simulatingAntiBot ? "Simulating..." : "Bot Detection"}
                     </Button>
                   </div>
                 </CardContent>

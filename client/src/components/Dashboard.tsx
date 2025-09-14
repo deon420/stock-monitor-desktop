@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { audioPlayer } from "@/utils/audioPlayer"
 import { Play } from "lucide-react"
 import { useNotifications } from "@/contexts/NotificationsContext"
+import { useAntiDetection } from "@/contexts/AntiDetectionContext"
 import { useDataProvider } from "@/contexts/DataProviderContext"
 import { Product, ProductInput, AppSettings } from "@/lib/dataProvider"
 import { WebDemoDataProvider } from "@/lib/webDemoDataProvider"
@@ -23,6 +24,9 @@ import { WebDemoDataProvider } from "@/lib/webDemoDataProvider"
 export default function Dashboard() {
   // Use DataProvider context
   const { dataProvider, isReady, providerType, error: providerError } = useDataProvider()
+  
+  // Use anti-detection context
+  const { showDetectionAlert } = useAntiDetection()
   
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
@@ -230,6 +234,30 @@ export default function Dashboard() {
       read: false
     }
     addNotification(newNotification)
+  }
+  
+  // Simulate anti-bot detection (for demo purposes)
+  const handleSimulateAntiDetection = async () => {
+    console.log('[Dashboard] Anti-bot detection simulation triggered')
+    const detectionTypes = ['cloudflare', 'rate_limit', 'captcha', 'ip_block'] as const
+    const platforms = ['amazon', 'walmart'] as const
+    
+    const randomDetection = {
+      isBlocked: true,
+      detectionType: detectionTypes[Math.floor(Math.random() * detectionTypes.length)],
+      confidence: Math.random() * 0.4 + 0.6, // 60-100% confidence
+      platform: platforms[Math.floor(Math.random() * platforms.length)],
+      responseCode: [403, 429, 503, 521][Math.floor(Math.random() * 4)],
+      responseTime: Math.floor(Math.random() * 5000) + 1000, // 1-6 seconds
+      timestamp: Date.now(),
+      suggestedAction: "Wait 5-10 minutes before retrying to avoid further detection.",
+      details: {
+        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        requestCount: Math.floor(Math.random() * 100) + 1
+      }
+    }
+    
+    showDetectionAlert(randomDetection)
   }
   
   // Simulate a price drop (for demo purposes)
@@ -466,6 +494,7 @@ export default function Dashboard() {
           onClose={() => setShowSettings(false)}
           onDemoStock={handleSimulateStockChange}
           onDemoPrice={handleSimulatePriceDrop}
+          onDemoAntiBot={handleSimulateAntiDetection}
         />
 
         <NotificationHistory

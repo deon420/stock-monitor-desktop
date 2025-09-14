@@ -7,9 +7,11 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import { DataProviderProvider } from "@/contexts/DataProviderContext";
 import { DesktopAuthProvider, useDesktopAuth } from "@/contexts/DesktopAuthContext";
+import { AntiDetectionProvider, useAntiDetection } from "@/contexts/AntiDetectionContext";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { DesktopLogin } from "@/components/DesktopLogin";
 import { ReactQueryValidation } from "@/components/ReactQueryValidation";
+import AntiDetectionModal from "@/components/AntiDetectionModal";
 import LandingPage from "@/pages/LandingPage";
 import Dashboard from "@/components/Dashboard";
 import NotificationHistoryPage from "@/pages/NotificationHistoryPage";
@@ -21,6 +23,7 @@ import type { AuthResponse } from "@shared/schema";
 
 function AuthenticatedRouter() {
   const { isAuthenticated, isLoading, login, apiRequest } = useDesktopAuth();
+  const { detectionAlert, showDetectionModal, hideDetectionAlert } = useAntiDetection();
 
   // Desktop authentication is now wired in DesktopAuthContext
 
@@ -43,7 +46,7 @@ function AuthenticatedRouter() {
 
   // Show login page for desktop app if not authenticated
   if (isDesktopApp && !isAuthenticated) {
-    return <DesktopLogin onLoginSuccess={login} />;
+    return <DesktopLogin onLoginSuccess={() => {/* Login success is handled by DesktopAuthContext */}} />;
   }
 
   // Show main application routes
@@ -51,6 +54,11 @@ function AuthenticatedRouter() {
     <>
       <ReactQueryValidation />
       <WelcomeDialog />
+      <AntiDetectionModal
+        isOpen={showDetectionModal}
+        detection={detectionAlert}
+        onClose={hideDetectionAlert}
+      />
       <Switch>
         <Route path="/" component={LandingPage} />
         <Route path="/dashboard" component={Dashboard} />
@@ -68,12 +76,14 @@ function App() {
       <ThemeProvider defaultTheme="system" storageKey="stock-monitor-theme">
         <DataProviderProvider>
           <DesktopAuthProvider>
-            <NotificationsProvider>
-              <TooltipProvider>
-                <Toaster />
-                <AuthenticatedRouter />
-              </TooltipProvider>
-            </NotificationsProvider>
+            <AntiDetectionProvider>
+              <NotificationsProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <AuthenticatedRouter />
+                </TooltipProvider>
+              </NotificationsProvider>
+            </AntiDetectionProvider>
           </DesktopAuthProvider>
         </DataProviderProvider>
       </ThemeProvider>
