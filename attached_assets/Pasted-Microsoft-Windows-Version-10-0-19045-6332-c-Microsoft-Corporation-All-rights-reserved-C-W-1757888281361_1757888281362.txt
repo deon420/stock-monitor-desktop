@@ -1,0 +1,144 @@
+Microsoft Windows [Version 10.0.19045.6332]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\WINDOWS\system32>cd C:\StockMonitor\desktop-app
+
+C:\StockMonitor\desktop-app>npm install
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated lodash.isequal@4.5.0: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+
+> stock-monitor-desktop@1.0.0 postinstall
+> electron-builder install-app-deps
+
+  • electron-builder  version=24.13.3
+  • loaded configuration  file=package.json ("build" field)
+  • rebuilding native dependencies  dependencies=better-sqlite3@9.6.0 platform=win32 arch=x64
+  • install prebuilt binary  name=better-sqlite3 version=9.6.0 platform=win32 arch=x64 napi=
+
+added 426 packages, and audited 427 packages in 18s
+
+77 packages are looking for funding
+  run `npm fund` for details
+
+1 moderate severity vulnerability
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+C:\StockMonitor\desktop-app>npm run build-win
+
+> stock-monitor-desktop@1.0.0 build-win
+> electron-builder --win
+
+  • electron-builder  version=24.13.3 os=10.0.19045
+  • loaded configuration  file=package.json ("build" field)
+  • writing effective config  file=dist\builder-effective-config.yaml
+  • rebuilding native dependencies  dependencies=better-sqlite3@9.6.0 platform=win32 arch=x64
+  • install prebuilt binary  name=better-sqlite3 version=9.6.0 platform=win32 arch=x64 napi=
+  • packaging       platform=win32 arch=x64 electron=28.0.0 appOutDir=dist\win-unpacked
+  • default Electron icon is used  reason=application icon is not set
+  • building        target=nsis file=dist\StockMonitor-Setup-1.0.0.exe archs=x64 oneClick=false perMachine=false
+  ⨯ C:\Users\kalvi\AppData\Local\electron-builder\Cache\nsis\nsis-3.0.4.1\Bin\makensis.exe process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE
+Exit code:
+1
+Output:
+Command line defined: "APP_ID=com.stockmonitor.app"
+Command line defined: "APP_GUID=c6990f9d-1431-5148-93a4-202b207332cc"
+Command line defined: "UNINSTALL_APP_KEY=c6990f9d-1431-5148-93a4-202b207332cc"
+Command line defined: "PRODUCT_NAME=Stock Monitor"
+Command line defined: "PRODUCT_FILENAME=Stock Monitor"
+Command line defined: "APP_FILENAME=Stock Monitor"
+Command line defined: "APP_DESCRIPTION=Stock Monitor Desktop - Track Amazon and Walmart product prices"
+Command line defined: "VERSION=1.0.0"
+Command line defined: "PROJECT_DIR=C:\StockMonitor\desktop-app"
+Command line defined: "BUILD_RESOURCES_DIR=C:\StockMonitor\desktop-app\res"
+Command line defined: "APP_PACKAGE_NAME=stock-monitor-desktop"
+Command line defined: "APP_64=C:\StockMonitor\desktop-app\dist\stock-monitor-desktop-1.0.0-x64.nsis.7z"
+Command line defined: "APP_64_NAME=stock-monitor-desktop-1.0.0-x64.nsis.7z"
+Command line defined: "APP_64_HASH=321F1EB0EB0F0F9631F89E0DE97E1667112C73EC1F08A25C3A9087FE4FA7BC071F428FBD8771AAC3E53F33CCE0D39F2B493C7F88160E41D9D4B84ACE814776A4"
+Command line defined: "APP_64_UNPACKED_SIZE=336057"
+Command line defined: "COMPANY_NAME=Made by one person who cares"
+Command line defined: "APP_INSTALLER_STORE_FILE=stock-monitor-desktop-updater\installer.exe"
+Command line defined: "COMPRESSION_METHOD=7z"
+Command line defined: "MULTIUSER_INSTALLMODE_ALLOW_ELEVATION"
+Command line defined: "INSTALL_MODE_PER_ALL_USERS_REQUIRED"
+Command line defined: "allowToChangeInstallationDirectory"
+Command line defined: "MENU_FILENAME=Productivity"
+Command line defined: "SHORTCUT_NAME=Stock Monitor"
+Command line defined: "DELETE_APP_DATA_ON_UNINSTALL"
+Command line defined: "UNINSTALL_DISPLAY_NAME=Stock Monitor 1.0.0"
+Command line defined: "RECREATE_DESKTOP_SHORTCUT"
+Command line defined: "MUI_WELCOMEFINISHPAGE_BITMAP=${NSISDIR}\Contrib\Graphics\Wizard\nsis3-metro.bmp"
+Command line defined: "MUI_UNWELCOMEFINISHPAGE_BITMAP=${NSISDIR}\Contrib\Graphics\Wizard\nsis3-metro.bmp"
+Command line defined: "ESTIMATED_SIZE=336056"
+Command line defined: "COMPRESS=auto"
+Command line defined: "UNINSTALLER_OUT_FILE=C:\StockMonitor\desktop-app\dist\__uninstaller-nsis-stock-monitor-desktop.exe"
+Processing config: C:\Users\kalvi\AppData\Local\electron-builder\Cache\nsis\nsis-3.0.4.1\nsisconf.nsh
+Processing script file: "<stdin>" (UTF8)
+
+Error output:
+!define: "MUI_FINISHPAGE_RUN" already defined!
+!include: error in script: "assistedInstaller.nsh" on line 60
+Error in script "<stdin>" on line 112 -- aborting creation process
+  failedTask=build stackTrace=Error: C:\Users\kalvi\AppData\Local\electron-builder\Cache\nsis\nsis-3.0.4.1\Bin\makensis.exe process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE
+Exit code:
+1
+Output:
+Command line defined: "APP_ID=com.stockmonitor.app"
+Command line defined: "APP_GUID=c6990f9d-1431-5148-93a4-202b207332cc"
+Command line defined: "UNINSTALL_APP_KEY=c6990f9d-1431-5148-93a4-202b207332cc"
+Command line defined: "PRODUCT_NAME=Stock Monitor"
+Command line defined: "PRODUCT_FILENAME=Stock Monitor"
+Command line defined: "APP_FILENAME=Stock Monitor"
+Command line defined: "APP_DESCRIPTION=Stock Monitor Desktop - Track Amazon and Walmart product prices"
+Command line defined: "VERSION=1.0.0"
+Command line defined: "PROJECT_DIR=C:\StockMonitor\desktop-app"
+Command line defined: "BUILD_RESOURCES_DIR=C:\StockMonitor\desktop-app\res"
+Command line defined: "APP_PACKAGE_NAME=stock-monitor-desktop"
+Command line defined: "APP_64=C:\StockMonitor\desktop-app\dist\stock-monitor-desktop-1.0.0-x64.nsis.7z"
+Command line defined: "APP_64_NAME=stock-monitor-desktop-1.0.0-x64.nsis.7z"
+Command line defined: "APP_64_HASH=321F1EB0EB0F0F9631F89E0DE97E1667112C73EC1F08A25C3A9087FE4FA7BC071F428FBD8771AAC3E53F33CCE0D39F2B493C7F88160E41D9D4B84ACE814776A4"
+Command line defined: "APP_64_UNPACKED_SIZE=336057"
+Command line defined: "COMPANY_NAME=Made by one person who cares"
+Command line defined: "APP_INSTALLER_STORE_FILE=stock-monitor-desktop-updater\installer.exe"
+Command line defined: "COMPRESSION_METHOD=7z"
+Command line defined: "MULTIUSER_INSTALLMODE_ALLOW_ELEVATION"
+Command line defined: "INSTALL_MODE_PER_ALL_USERS_REQUIRED"
+Command line defined: "allowToChangeInstallationDirectory"
+Command line defined: "MENU_FILENAME=Productivity"
+Command line defined: "SHORTCUT_NAME=Stock Monitor"
+Command line defined: "DELETE_APP_DATA_ON_UNINSTALL"
+Command line defined: "UNINSTALL_DISPLAY_NAME=Stock Monitor 1.0.0"
+Command line defined: "RECREATE_DESKTOP_SHORTCUT"
+Command line defined: "MUI_WELCOMEFINISHPAGE_BITMAP=${NSISDIR}\Contrib\Graphics\Wizard\nsis3-metro.bmp"
+Command line defined: "MUI_UNWELCOMEFINISHPAGE_BITMAP=${NSISDIR}\Contrib\Graphics\Wizard\nsis3-metro.bmp"
+Command line defined: "ESTIMATED_SIZE=336056"
+Command line defined: "COMPRESS=auto"
+Command line defined: "UNINSTALLER_OUT_FILE=C:\StockMonitor\desktop-app\dist\__uninstaller-nsis-stock-monitor-desktop.exe"
+Processing config: C:\Users\kalvi\AppData\Local\electron-builder\Cache\nsis\nsis-3.0.4.1\nsisconf.nsh
+Processing script file: "<stdin>" (UTF8)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         Error output:
+!define: "MUI_FINISHPAGE_RUN" already defined!
+!include: error in script: "assistedInstaller.nsh" on line 60
+Error in script "<stdin>" on line 112 -- aborting creation process
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             at ChildProcess.<anonymous> (C:\StockMonitor\desktop-app\node_modules\builder-util\src\util.ts:252:14)
+    at Object.onceWrapper (node:events:634:26)
+    at ChildProcess.emit (node:events:519:28)
+    at ChildProcess.cp.emit (C:\StockMonitor\desktop-app\node_modules\cross-spawn\lib\enoent.js:34:29)
+    at maybeClose (node:internal/child_process:1101:16)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:304:5)
+
+  • electron-builder  version=24.13.3 os=10.0.19045
+  • loaded configuration  file=package.json ("build" field)
+  • writing effective config  file=dist\builder-effective-config.yaml
+  • rebuilding native dependencies  dependencies=better-sqlite3@9.6.0 platform=win32 arch=x64
+  • install prebuilt binary  name=better-sqlite3 version=9.6.0 platform=win32 arch=x64 napi=
+  • packaging       platform=win32 arch=x64 electron=28.0.0 appOutDir=dist\win-unpacked
+  • default Electron icon is used  reason=application icon is not set
+  • building        target=nsis file=dist\StockMonitor-Setup-1.0.0.exe archs=x64 oneClick=false perMachine=false
+
+C:\StockMonitor\desktop-app>
