@@ -18,7 +18,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient"
 import { audioPlayer } from "@/utils/audioPlayer"
 import { isDesktopApp } from "@/lib/desktopDataProvider"
 import { Settings as SettingsData, UpdateSettings } from "@shared/schema"
-import { useSolutionSuggestions } from "@/contexts/SolutionSuggestionsContext"
 
 interface SettingsProps {
   isOpen: boolean
