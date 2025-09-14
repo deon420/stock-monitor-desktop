@@ -40,7 +40,6 @@
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "Stock Monitor",
-      "include": "build/installer.nsh",
       "artifactName": "StockMonitor-Setup-${version}.${ext}",
       "deleteAppDataOnUninstall": true,
       "runAfterFinish": true,
