@@ -7,7 +7,6 @@ Caption "Stock Monitor Installer 1.0.0"
 Name "Stock Monitor"
 OutFile "StockMonitor-Setup-1.0.0.exe"  
 InstallDir "$PROGRAMFILES64\Stock Monitor"
-SetShellVarContext all
 
 ; Modern UI
 !include "MUI2.nsh"
@@ -56,6 +55,9 @@ BrandingText "Made by one person who cares"
 
 ; Installation section - electron-builder handles the actual files
 Section "Install"
+  ; Set system context for all users
+  SetShellVarContext all
+  
   ; Set default install directory
   StrCmp $INSTDIR "" 0 +2
     StrCpy $INSTDIR "$PROGRAMFILES64\Stock Monitor"
