@@ -1,0 +1,230 @@
+Microsoft Windows [Version 10.0.19045.6332]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\WINDOWS\system32>cd C:\StockMonitor\desktop-app
+
+C:\StockMonitor\desktop-app>npm install
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated lodash.isequal@4.5.0: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+
+> stock-monitor-desktop@1.0.0 postinstall
+> electron-builder install-app-deps
+
+  • electron-builder  version=24.13.3
+  • loaded configuration  file=package.json ("build" field)
+  • rebuilding native dependencies  dependencies=better-sqlite3@9.6.0 platform=win32 arch=x64
+  • install prebuilt binary  name=better-sqlite3 version=9.6.0 platform=win32 arch=x64 napi=
+
+added 426 packages, and audited 427 packages in 17s
+
+77 packages are looking for funding
+  run `npm fund` for details
+
+1 moderate severity vulnerability
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+C:\StockMonitor\desktop-app>npm run build-win
+
+> stock-monitor-desktop@1.0.0 build-win
+> electron-builder --win
+
+  • electron-builder  version=24.13.3 os=10.0.19045
+  • loaded configuration  file=package.json ("build" field)
+  • writing effective config  file=dist\builder-effective-config.yaml
+  • rebuilding native dependencies  dependencies=better-sqlite3@9.6.0 platform=win32 arch=x64
+  • install prebuilt binary  name=better-sqlite3 version=9.6.0 platform=win32 arch=x64 napi=
+  • packaging       platform=win32 arch=x64 electron=28.0.0 appOutDir=dist\win-unpacked
+  ⨯ flate: corrupt input before offset 90
+github.com/develar/go-fs-util.CloseAndCheckError
+        /Volumes/data/go/pkg/mod/github.com/develar/go-fs-util@v0.0.0-20190620175131-69a2d4542206/fs.go:117
+github.com/develar/app-builder/pkg/icons.DecodeImageAndClose
+        /Volumes/data/Documents/app-builder/pkg/icons/image-util.go:90
+github.com/develar/app-builder/pkg/icons.LoadImage
+        /Volumes/data/Documents/app-builder/pkg/icons/image-util.go:61
+github.com/develar/app-builder/pkg/icons.loadImage
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:334
+github.com/develar/app-builder/pkg/icons.configureInputInfoFromSingleFile
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:316
+github.com/develar/app-builder/pkg/icons.doConvertIcon
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:241
+github.com/develar/app-builder/pkg/icons.ConvertIcon
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:56
+github.com/develar/app-builder/pkg/icons.ConfigureCommand.func1
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:33
+github.com/alecthomas/kingpin.(*actionMixin).applyActions
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/actions.go:28
+github.com/alecthomas/kingpin.(*Application).applyActions
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:557
+github.com/alecthomas/kingpin.(*Application).execute
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:390
+github.com/alecthomas/kingpin.(*Application).Parse
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:222
+main.main
+        /Volumes/data/Documents/app-builder/main.go:90
+runtime.main
+        /usr/local/Cellar/go/1.17/libexec/src/runtime/proc.go:255
+runtime.goexit
+        /usr/local/Cellar/go/1.17/libexec/src/runtime/asm_amd64.s:1581
+  ⨯ C:\StockMonitor\desktop-app\node_modules\app-builder-bin\win\x64\app-builder.exe process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE
+Exit code:
+1  failedTask=build stackTrace=Error: C:\StockMonitor\desktop-app\node_modules\app-builder-bin\win\x64\app-builder.exe process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE
+Exit code:
+1
+    at ChildProcess.<anonymous> (C:\StockMonitor\desktop-app\node_modules\builder-util\src\util.ts:252:14)
+    at Object.onceWrapper (node:events:634:26)
+    at ChildProcess.emit (node:events:519:28)
+    at ChildProcess.cp.emit (C:\StockMonitor\desktop-app\node_modules\cross-spawn\lib\enoent.js:34:29)
+    at maybeClose (node:internal/child_process:1101:16)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:304:5)
+From previous event:
+    at processImmediate (node:internal/timers:485:21)
+From previous event:
+    at WinPackager.signApp (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\winPackager.ts:384:27)
+    at WinPackager.doSignAfterPack (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\platformPackager.ts:336:32)
+    at WinPackager.doPack (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\platformPackager.ts:321:7)
+    at WinPackager.pack (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\platformPackager.ts:140:5)
+    at Packager.doBuild (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\packager.ts:445:9)
+    at executeFinally (C:\StockMonitor\desktop-app\node_modules\builder-util\src\promise.ts:12:14)
+    at Packager._build (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\packager.ts:379:31)
+    at Packager.build (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\packager.ts:340:12)
+    at executeFinally (C:\StockMonitor\desktop-app\node_modules\builder-util\src\promise.ts:12:14)
+
+C:\StockMonitor\desktop-app>npm run build-win
+
+> stock-monitor-desktop@1.0.0 build-win
+> electron-builder --win
+
+  • electron-builder  version=24.13.3 os=10.0.19045
+  • loaded configuration  file=package.json ("build" field)
+  • writing effective config  file=dist\builder-effective-config.yaml
+  • rebuilding native dependencies  dependencies=better-sqlite3@9.6.0 platform=win32 arch=x64
+  • install prebuilt binary  name=better-sqlite3 version=9.6.0 platform=win32 arch=x64 napi=
+  • packaging       platform=win32 arch=x64 electron=28.0.0 appOutDir=dist\win-unpacked
+  ⨯ flate: corrupt input before offset 90
+github.com/develar/go-fs-util.CloseAndCheckError
+        /Volumes/data/go/pkg/mod/github.com/develar/go-fs-util@v0.0.0-20190620175131-69a2d4542206/fs.go:117
+github.com/develar/app-builder/pkg/icons.DecodeImageAndClose
+        /Volumes/data/Documents/app-builder/pkg/icons/image-util.go:90
+github.com/develar/app-builder/pkg/icons.LoadImage
+        /Volumes/data/Documents/app-builder/pkg/icons/image-util.go:61
+github.com/develar/app-builder/pkg/icons.loadImage
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:334
+github.com/develar/app-builder/pkg/icons.configureInputInfoFromSingleFile
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:316
+github.com/develar/app-builder/pkg/icons.doConvertIcon
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:241
+github.com/develar/app-builder/pkg/icons.ConvertIcon
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:56
+github.com/develar/app-builder/pkg/icons.ConfigureCommand.func1
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:33
+github.com/alecthomas/kingpin.(*actionMixin).applyActions
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/actions.go:28
+github.com/alecthomas/kingpin.(*Application).applyActions
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:557
+github.com/alecthomas/kingpin.(*Application).execute
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:390
+github.com/alecthomas/kingpin.(*Application).Parse
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:222
+main.main
+        /Volumes/data/Documents/app-builder/main.go:90
+runtime.main
+        /usr/local/Cellar/go/1.17/libexec/src/runtime/proc.go:255
+runtime.goexit
+        /usr/local/Cellar/go/1.17/libexec/src/runtime/asm_amd64.s:1581
+  ⨯ C:\StockMonitor\desktop-app\node_modules\app-builder-bin\win\x64\app-builder.exe process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE
+Exit code:
+1  failedTask=build stackTrace=Error: C:\StockMonitor\desktop-app\node_modules\app-builder-bin\win\x64\app-builder.exe process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE
+Exit code:
+1
+    at ChildProcess.<anonymous> (C:\StockMonitor\desktop-app\node_modules\builder-util\src\util.ts:252:14)
+    at Object.onceWrapper (node:events:634:26)
+    at ChildProcess.emit (node:events:519:28)
+    at ChildProcess.cp.emit (C:\StockMonitor\desktop-app\node_modules\cross-spawn\lib\enoent.js:34:29)
+    at maybeClose (node:internal/child_process:1101:16)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:304:5)
+From previous event:
+    at processImmediate (node:internal/timers:485:21)
+From previous event:
+    at WinPackager.signApp (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\winPackager.ts:384:27)
+    at WinPackager.doSignAfterPack (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\platformPackager.ts:336:32)
+    at WinPackager.doPack (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\platformPackager.ts:321:7)
+    at WinPackager.pack (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\platformPackager.ts:140:5)
+    at Packager.doBuild (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\packager.ts:445:9)
+    at executeFinally (C:\StockMonitor\desktop-app\node_modules\builder-util\src\promise.ts:12:14)
+    at Packager._build (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\packager.ts:379:31)
+    at Packager.build (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\packager.ts:340:12)
+    at executeFinally (C:\StockMonitor\desktop-app\node_modules\builder-util\src\promise.ts:12:14)
+
+C:\StockMonitor\desktop-app>npm run build-win
+
+> stock-monitor-desktop@1.0.0 build-win
+> electron-builder --win
+
+  • electron-builder  version=24.13.3 os=10.0.19045
+  • loaded configuration  file=package.json ("build" field)
+  • writing effective config  file=dist\builder-effective-config.yaml
+  • rebuilding native dependencies  dependencies=better-sqlite3@9.6.0 platform=win32 arch=x64
+  • install prebuilt binary  name=better-sqlite3 version=9.6.0 platform=win32 arch=x64 napi=
+  • packaging       platform=win32 arch=x64 electron=28.0.0 appOutDir=dist\win-unpacked
+  ⨯ flate: corrupt input before offset 90
+github.com/develar/go-fs-util.CloseAndCheckError
+        /Volumes/data/go/pkg/mod/github.com/develar/go-fs-util@v0.0.0-20190620175131-69a2d4542206/fs.go:117
+github.com/develar/app-builder/pkg/icons.DecodeImageAndClose
+        /Volumes/data/Documents/app-builder/pkg/icons/image-util.go:90
+github.com/develar/app-builder/pkg/icons.LoadImage
+        /Volumes/data/Documents/app-builder/pkg/icons/image-util.go:61
+github.com/develar/app-builder/pkg/icons.loadImage
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:334
+github.com/develar/app-builder/pkg/icons.configureInputInfoFromSingleFile
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:316
+github.com/develar/app-builder/pkg/icons.doConvertIcon
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:241
+github.com/develar/app-builder/pkg/icons.ConvertIcon
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:56
+github.com/develar/app-builder/pkg/icons.ConfigureCommand.func1
+        /Volumes/data/Documents/app-builder/pkg/icons/icon-converter.go:33
+github.com/alecthomas/kingpin.(*actionMixin).applyActions
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/actions.go:28
+github.com/alecthomas/kingpin.(*Application).applyActions
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:557
+github.com/alecthomas/kingpin.(*Application).execute
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:390
+github.com/alecthomas/kingpin.(*Application).Parse
+        /Volumes/data/go/pkg/mod/github.com/alecthomas/kingpin@v2.2.6+incompatible/app.go:222
+main.main
+        /Volumes/data/Documents/app-builder/main.go:90
+runtime.main
+        /usr/local/Cellar/go/1.17/libexec/src/runtime/proc.go:255
+runtime.goexit
+        /usr/local/Cellar/go/1.17/libexec/src/runtime/asm_amd64.s:1581
+  ⨯ C:\StockMonitor\desktop-app\node_modules\app-builder-bin\win\x64\app-builder.exe process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE
+Exit code:
+1  failedTask=build stackTrace=Error: C:\StockMonitor\desktop-app\node_modules\app-builder-bin\win\x64\app-builder.exe process failed ERR_ELECTRON_BUILDER_CANNOT_EXECUTE
+Exit code:
+1
+    at ChildProcess.<anonymous> (C:\StockMonitor\desktop-app\node_modules\builder-util\src\util.ts:252:14)
+    at Object.onceWrapper (node:events:634:26)
+    at ChildProcess.emit (node:events:519:28)
+    at ChildProcess.cp.emit (C:\StockMonitor\desktop-app\node_modules\cross-spawn\lib\enoent.js:34:29)
+    at maybeClose (node:internal/child_process:1101:16)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:304:5)
+From previous event:
+    at processImmediate (node:internal/timers:485:21)
+From previous event:
+    at WinPackager.signApp (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\winPackager.ts:384:27)
+    at WinPackager.doSignAfterPack (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\platformPackager.ts:336:32)
+    at WinPackager.doPack (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\platformPackager.ts:321:7)
+    at WinPackager.pack (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\platformPackager.ts:140:5)
+    at Packager.doBuild (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\packager.ts:445:9)
+    at executeFinally (C:\StockMonitor\desktop-app\node_modules\builder-util\src\promise.ts:12:14)
+    at Packager._build (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\packager.ts:379:31)
+    at Packager.build (C:\StockMonitor\desktop-app\node_modules\app-builder-lib\src\packager.ts:340:12)
+    at executeFinally (C:\StockMonitor\desktop-app\node_modules\builder-util\src\promise.ts:12:14)
+
+C:\StockMonitor\desktop-app>

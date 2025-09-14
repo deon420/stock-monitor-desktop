@@ -17,6 +17,7 @@
     "copyright": "Made by one person who cares",
     "electronVersion": "28.0.0",
     "directories": {
+      "buildResources": "res",
       "output": "dist"
     },
     "files": [
