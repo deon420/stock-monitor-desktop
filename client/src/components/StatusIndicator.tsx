@@ -12,65 +12,23 @@ interface StatusOption {
 const statusOptions: StatusOption[] = [
   {
     id: 'online-undetected',
-    icon: RotateCcw,
+    icon: Circle,
     text: 'ONLINE | MONITORING IS UNDETECTED',
-    description: 'Spinning arrows - slowed 50%',
-    pulseType: 'spin'
+    description: 'Simple dot with glow pulse',
+    pulseType: 'glow'
   },
   {
     id: 'secure-monitoring',
-    icon: RotateCcw,
+    icon: Shield,
     text: 'SECURE | MONITORING IS UNDETECTED', 
-    description: 'Spinning arrows - slowed 50%',
-    pulseType: 'spin'
+    description: 'Shield with glow pulse',
+    pulseType: 'glow'
   },
   {
-    id: 'online-undetected-2',
-    icon: RotateCcw,
+    id: 'online-system-undetected',
+    icon: Eye,
     text: 'ONLINE | SYSTEM IS UNDETECTED',
-    description: 'Spinning arrows - slowed 50%',
-    pulseType: 'spin'
-  },
-  {
-    id: 'system-operational',
-    icon: Monitor,
-    text: 'SYSTEM | MONITORING IS UNDETECTED',
-    description: 'Monitor with glow pulse',
-    pulseType: 'glow'
-  },
-  {
-    id: 'processing-undetected',
-    icon: Cpu,
-    text: 'PROCESSING | SYSTEM IS UNDETECTED',
-    description: 'CPU chip with scale pulse',
-    pulseType: 'scale'
-  },
-  {
-    id: 'signal-acquired',
-    icon: Satellite,
-    text: 'SIGNAL ACQUIRED | UNDETECTED',
-    description: 'Satellite with glow pulse',
-    pulseType: 'glow'
-  },
-  {
-    id: 'powered-on',
-    icon: Power,
-    text: 'POWERED ON | MONITORING ACTIVE',
-    description: 'Power button with scale pulse',
-    pulseType: 'scale'
-  },
-  {
-    id: 'continuous-monitoring',
-    icon: RotateCcw,
-    text: 'CONTINUOUS | MONITORING ACTIVE',
-    description: 'Rotating arrows with spin',
-    pulseType: 'spin'
-  },
-  {
-    id: 'target-locked',
-    icon: Target,
-    text: 'TARGET LOCKED | UNDETECTED',
-    description: 'Target crosshairs with scale pulse',
+    description: 'Eye with scale pulse',
     pulseType: 'scale'
   }
 ]
