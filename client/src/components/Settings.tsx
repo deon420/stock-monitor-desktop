@@ -85,7 +85,6 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
     gmailEmail: '',
     gmailAppPassword: '',
     testEmailSent: false,
-    audioNotificationSound: 'chime',
     enableTaskTray: false,
     enableDesktopNotifications: true,
     enableBrowserNotifications: false,

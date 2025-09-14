@@ -71,7 +71,7 @@ export default function LandingPage() {
             <Monitor className="h-6 w-6 text-primary" />
             <span className="font-bold text-xl">Stock Monitor</span>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             <nav className="hidden md:flex items-center space-x-6">
               <a href="#features" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-features">
                 Features
@@ -84,22 +84,36 @@ export default function LandingPage() {
               </a>
             </nav>
             <ThemeToggle />
-            <Button 
-              size="sm" 
-              onClick={openLoginModal}
-              data-testid="button-header-login"
-            >
-              <LogIn className="mr-2 h-4 w-4" />
-              Sign In
-            </Button>
-            <Button 
-              size="sm" 
-              onClick={openSignupModal}
-              data-testid="button-header-signup"
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Sign Up
-            </Button>
+            {!isMobile && (
+              <>
+                <Button 
+                  size="sm" 
+                  onClick={openLoginModal}
+                  data-testid="button-header-login"
+                >
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign In
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={openSignupModal}
+                  data-testid="button-header-signup"
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Sign Up
+                </Button>
+              </>
+            )}
+            {isMobile && (
+              <Button 
+                size="sm" 
+                onClick={openAuthChoiceModal}
+                data-testid="button-header-auth-mobile"
+              >
+                <UserPlus className="mr-1 h-4 w-4" />
+                Join
+              </Button>
+            )}
           </div>
         </div>
       </header>
