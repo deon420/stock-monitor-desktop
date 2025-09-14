@@ -78,7 +78,12 @@ export class WebDemoDataProvider implements IDataProvider {
   }
 
   async updateSettings(settingsUpdate: Partial<AppSettings>): Promise<AppSettings> {
-    console.log('[WebDemoDataProvider] Updating settings:', settingsUpdate)
+    // Mask sensitive data in logs
+    const logSafeUpdate = { ...settingsUpdate }
+    if (logSafeUpdate.gmailAppPassword) {
+      logSafeUpdate.gmailAppPassword = '***'
+    }
+    console.log('[WebDemoDataProvider] Updating settings:', logSafeUpdate)
     this.settings = { ...this.settings, ...settingsUpdate }
     return { ...this.settings }
   }
