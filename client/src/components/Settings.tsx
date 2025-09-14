@@ -66,63 +66,116 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
     setDemoAntiBotSettings(prev => ({ ...prev, [key]: value }))
   }
 
-  // Fetch settings using React Query
-  const { data: settings, isLoading } = useQuery<SettingsData>({
-    queryKey: ['/api/settings'],
-    enabled: isOpen, // Only fetch when modal is open
-  })
+  // Use local demo settings instead of API for web demo
+  const demoSettings: SettingsData = {
+    id: 'demo',
+    createdAt: null,
+    updatedAt: null,
+    userId: 'demo-user',
+    amazonCheckInterval: 20,
+    walmartCheckInterval: 10,
+    enableRandomization: true,
+    enableAudio: true,
+    priceDropSound: 'chime',
+    stockAlertSound: 'bell',
+    audioVolume: 80,
+    enableEmail: false,
+    gmailEmail: '',
+    gmailAppPassword: '',
+    testEmailSent: false,
+    audioNotificationSound: 'chime',
+    enableTaskTray: false,
+    enableDesktopNotifications: true,
+    enableBrowserNotifications: false,
+    enableSoundNotifications: true,
+    enableVisualIndicators: true,
+    enableQuietHours: false,
+    quietHoursStart: '22:00',
+    quietHoursEnd: '08:00',
+    enableLocationTracking: false,
+    locationUpdateInterval: 30,
+    enableDataCollection: false,
+    dataRetentionDays: 30,
+    enableCrashReporting: true,
+    enableUsageAnalytics: false,
+    enablePerformanceMonitoring: true,
+    enableErrorLogging: true,
+    enableDebugMode: false,
+    enableVerboseLogging: false,
+    enableFileLogging: true,
+    maxLogFileSize: 10,
+    logRotationDays: 7,
+    enableRemoteLogging: false,
+    remoteLoggingEndpoint: '',
+    enableMetrics: false,
+    metricsInterval: 60,
+    enableAlerts: true,
+    alertThreshold: 5,
+    enableMaintenance: false,
+    maintenanceWindow: '02:00-04:00',
+    enableBackup: true,
+    backupInterval: 24,
+    backupRetentionDays: 30,
+    enableSync: false,
+    syncInterval: 15,
+    enableCache: true,
+    cacheSize: 100,
+    cacheTTL: 300,
+    enableCompression: false,
+    compressionLevel: 6,
+    enableEncryption: true,
+    encryptionAlgorithm: 'AES-256',
+    enableAuthentication: true,
+    sessionTimeout: 30,
+    maxLoginAttempts: 5,
+    lockoutDuration: 15,
+    enableTwoFactor: false,
+    twoFactorMethod: 'sms',
+    enablePasswordPolicy: true,
+    minPasswordLength: 8,
+    requireSpecialChars: true,
+    requireNumbers: true,
+    requireUppercase: true,
+    passwordExpiryDays: 90,
+    enableAccountLockout: true,
+    maxFailedAttempts: 3,
+    lockoutDurationMinutes: 30,
+    enableSessionManagement: true,
+    maxConcurrentSessions: 3,
+    enableAuditLog: true,
+    auditLogRetentionDays: 365,
+    enableSecurityHeaders: true,
+    enableRateLimiting: true,
+    rateLimitRequests: 100,
+    rateLimitWindow: 15,
+    enableIPWhitelist: false,
+    whitelistedIPs: '',
+    enableGeoBlocking: false,
+    blockedCountries: '',
+    confirmBeforeApplying: true
+  }
+  
+  const { data: settings = demoSettings, isLoading = false } = { data: demoSettings, isLoading: false }
 
-  // Update settings mutation
-  const updateSettingsMutation = useMutation({
-    mutationFn: (newSettings: UpdateSettings) => apiRequest('POST', '/api/settings', newSettings),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/settings'] })
+  // Demo-only settings handler (no backend calls)
+  const updateSettingsMutation = {
+    mutate: (newSettings: any) => {
       toast({
-        title: "Settings saved",
-        description: "Your settings have been updated successfully.",
-      })
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error saving settings",
-        description: error?.message || "Failed to save settings",
-        variant: "destructive",
+        title: "Demo Settings Updated",
+        description: "This is a visual demo - settings don't persist.",
+        variant: "default",
       })
     }
-  })
+  }
 
-  // Enhanced setting change handler that also notifies desktop tray
+  // Demo-only setting change handler (no backend calls)
   const handleSettingChange = async (key: string, value: any) => {
-    if (!settings) return
-    
-    const updatedSettings = { ...settings, [key]: value }
-    
-    // Handle desktop tray setting changes
-    if (key === 'enableTaskTray' && isDesktopApp()) {
-      try {
-        // Use the desktop tray API to toggle tray functionality
-        const electronAPI = (window as any).electronAPI;
-        if (electronAPI?.trayHelper?.toggleSafe) {
-          await electronAPI.trayHelper.toggleSafe(value);
-          console.log(`[Desktop Settings] Tray ${value ? 'enabled' : 'disabled'} successfully`);
-        } else if (electronAPI?.tray?.toggle) {
-          // Fallback to direct API call
-          const result = await electronAPI.tray.toggle(value);
-          console.log(`[Desktop Settings] Tray toggle result:`, result);
-        }
-      } catch (error) {
-        console.warn('[Desktop Settings] Failed to toggle tray:', error);
-        // Don't block the settings update if tray toggle fails
-        toast({
-          title: "Tray Setting Warning", 
-          description: "Settings saved but tray functionality may need app restart.",
-          variant: "default",
-        });
-      }
-    }
-    
-    // Always update the backend settings
-    updateSettingsMutation.mutate(updatedSettings)
+    // Just show a demo toast
+    toast({
+      title: "Demo Setting Updated",
+      description: "This is a visual demo - settings don't persist.",
+      variant: "default",
+    })
   }
 
   // Monitor tray setting changes to ensure desktop app stays in sync
