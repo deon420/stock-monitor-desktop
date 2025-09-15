@@ -65,10 +65,26 @@ async function buildAll() {
     await runCommand('npm', ['run', 'build'], projectRoot);
 
     console.log('\n📋 Step 2: Copying frontend to desktop app...');
-    const output = await runCommand('node', ['scripts/copy-frontend.mjs'], projectRoot, { captureOutput: true });
-    if (!output.includes('✅ Frontend copy process completed successfully')) {
-      throw new Error('Frontend copy verification failed');
+    await runCommand('node', ['scripts/copy-frontend.mjs'], projectRoot);
+    
+    // Verify the copy was successful by checking the files directly
+    const frontendDir = join(desktopAppPath, 'frontend');
+    const indexPath = join(frontendDir, 'index.html');
+    const assetsDir = join(frontendDir, 'assets');
+    
+    if (!existsSync(frontendDir)) {
+      throw new Error(`Frontend copy failed: directory ${frontendDir} was not created`);
     }
+    
+    if (!existsSync(indexPath)) {
+      throw new Error(`Frontend copy failed: index.html not found at ${indexPath}`);
+    }
+    
+    if (!existsSync(assetsDir)) {
+      throw new Error(`Frontend copy failed: assets directory not found at ${assetsDir}`);
+    }
+    
+    console.log(`✅ Frontend copy verification completed: ${frontendDir}`);
 
     console.log('\n📦 Step 3: Installing desktop app dependencies...');
     if (!existsSync(join(desktopAppPath, 'package.json'))) {
