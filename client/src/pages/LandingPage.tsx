@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AuthChoiceModal } from "@/components/AuthChoiceModal";
-import DemoModal from "@/components/DemoModal";
+// Code split modal components to reduce bundle size
+const AuthChoiceModal = lazy(() => import("@/components/AuthChoiceModal"));
+const DemoModal = lazy(() => import("@/components/DemoModal"));
 import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Monitor, 
@@ -683,17 +684,25 @@ export default function LandingPage() {
       </footer>
 
       {/* Authentication Modal */}
-      <AuthChoiceModal 
-        open={authModalOpen}
-        onOpenChange={setAuthModalOpen}
-        defaultMode={authModalMode}
-      />
+      {authModalOpen && (
+        <Suspense fallback={null}>
+          <AuthChoiceModal 
+            open={authModalOpen}
+            onOpenChange={setAuthModalOpen}
+            defaultMode={authModalMode}
+          />
+        </Suspense>
+      )}
 
       {/* Demo Modal - Desktop Only */}
-      <DemoModal 
-        isOpen={demoModalOpen}
-        onClose={() => setDemoModalOpen(false)}
-      />
+      {demoModalOpen && (
+        <Suspense fallback={null}>
+          <DemoModal 
+            isOpen={demoModalOpen}
+            onClose={() => setDemoModalOpen(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

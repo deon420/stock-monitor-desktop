@@ -84,7 +84,6 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
     enableEmail: false,
     gmailEmail: '',
     gmailAppPassword: '',
-    testEmailSent: false,
     enableTaskTray: false,
     enableDesktopNotifications: true,
     enableBrowserNotifications: false,

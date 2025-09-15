@@ -17,7 +17,7 @@ interface AuthChoiceModalProps {
   defaultMode?: AuthMode;
 }
 
-export function AuthChoiceModal({ open, onOpenChange, defaultMode = 'choice' }: AuthChoiceModalProps) {
+export default function AuthChoiceModal({ open, onOpenChange, defaultMode = 'choice' }: AuthChoiceModalProps) {
   const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [, setLocation] = useLocation();
 

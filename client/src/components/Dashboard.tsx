@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense, lazy } from "react"
 import DashboardHeader from "./DashboardHeader"
 import StatsCards from "./StatsCards"
 import ProductCard from "./ProductCard"
-import AddProductForm from "./AddProductForm"
-import EditProductModal from "./EditProductModal"
-import ProductHistoryModal from "./ProductHistoryModal"
-import StockAlertModal from "./StockAlertModal"
-import PriceDropAlertModal from "./PriceDropAlertModal"
-import Settings from "./Settings"
-import NotificationHistory from "./NotificationHistory"
+
+// Code split modal components and forms for better bundle optimization
+const AddProductForm = lazy(() => import("./AddProductForm"))
+const EditProductModal = lazy(() => import("./EditProductModal"))
+const ProductHistoryModal = lazy(() => import("./ProductHistoryModal"))
+const StockAlertModal = lazy(() => import("./StockAlertModal"))
+const PriceDropAlertModal = lazy(() => import("./PriceDropAlertModal"))
+const Settings = lazy(() => import("./Settings"))
+const NotificationHistory = lazy(() => import("./NotificationHistory"))
 import { AccessControl, AccessStatusBadge, ProtectedFeature } from "./AccessControl"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -447,54 +449,82 @@ export default function Dashboard() {
         </div>
 
         {/* Add Product Dialog */}
-        <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add New Product</DialogTitle>
-            </DialogHeader>
-            <AddProductForm 
-              onAddProduct={handleAddProduct}
-            />
-          </DialogContent>
-        </Dialog>
+        {showAddForm && (
+          <Suspense fallback={null}>
+            <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add New Product</DialogTitle>
+                </DialogHeader>
+                <AddProductForm 
+                  onAddProduct={handleAddProduct}
+                />
+              </DialogContent>
+            </Dialog>
+          </Suspense>
+        )}
 
         {/* Stock Alert Modal */}
-        <StockAlertModal
-          isOpen={!!stockAlert}
-          product={stockAlert}
-          onClose={() => setStockAlert(null)}
-        />
+        {stockAlert && (
+          <Suspense fallback={null}>
+            <StockAlertModal
+              isOpen={!!stockAlert}
+              product={stockAlert}
+              onClose={() => setStockAlert(null)}
+            />
+          </Suspense>
+        )}
         
-        <PriceDropAlertModal
-          isOpen={!!priceDropAlert}
-          product={priceDropAlert}
-          onClose={() => setPriceDropAlert(null)}
-        />
+        {priceDropAlert && (
+          <Suspense fallback={null}>
+            <PriceDropAlertModal
+              isOpen={!!priceDropAlert}
+              product={priceDropAlert}
+              onClose={() => setPriceDropAlert(null)}
+            />
+          </Suspense>
+        )}
 
-        <Settings
-          isOpen={showSettings}
-          onClose={() => setShowSettings(false)}
-          onDemoStock={handleSimulateStockChange}
-          onDemoPrice={handleSimulatePriceDrop}
-        />
+        {showSettings && (
+          <Suspense fallback={null}>
+            <Settings
+              isOpen={showSettings}
+              onClose={() => setShowSettings(false)}
+              onDemoStock={handleSimulateStockChange}
+              onDemoPrice={handleSimulatePriceDrop}
+            />
+          </Suspense>
+        )}
 
-        <NotificationHistory
-          isOpen={showNotifications}
-          onClose={() => setShowNotifications(false)}
-        />
+        {showNotifications && (
+          <Suspense fallback={null}>
+            <NotificationHistory
+              isOpen={showNotifications}
+              onClose={() => setShowNotifications(false)}
+            />
+          </Suspense>
+        )}
 
-        <EditProductModal
-          isOpen={!!editProduct}
-          product={editProduct}
-          onClose={() => setEditProduct(null)}
-          onSave={handleSaveEditProduct}
-        />
+        {editProduct && (
+          <Suspense fallback={null}>
+            <EditProductModal
+              isOpen={!!editProduct}
+              product={editProduct}
+              onClose={() => setEditProduct(null)}
+              onSave={handleSaveEditProduct}
+            />
+          </Suspense>
+        )}
 
-        <ProductHistoryModal
-          isOpen={!!historyProduct}
-          product={historyProduct}
-          onClose={() => setHistoryProduct(null)}
-        />
+        {historyProduct && (
+          <Suspense fallback={null}>
+            <ProductHistoryModal
+              isOpen={!!historyProduct}
+              product={historyProduct}
+              onClose={() => setHistoryProduct(null)}
+            />
+          </Suspense>
+        )}
       </div>
     </div>
   )

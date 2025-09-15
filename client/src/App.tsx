@@ -10,13 +10,15 @@ import { DesktopAuthProvider, useDesktopAuth } from "@/contexts/DesktopAuthConte
 import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { DesktopLogin } from "@/components/DesktopLogin";
 import { ReactQueryValidation } from "@/components/ReactQueryValidation";
-import LandingPage from "@/pages/LandingPage";
-import Dashboard from "@/components/Dashboard";
-import NotificationHistoryPage from "@/pages/NotificationHistoryPage";
-import AdminDashboard from "@/pages/AdminDashboard";
-import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
+
+// Code split large components using React.lazy for better bundle optimization
+const LandingPage = lazy(() => import("@/pages/LandingPage"));
+const Dashboard = lazy(() => import("@/components/Dashboard"));
+const NotificationHistoryPage = lazy(() => import("@/pages/NotificationHistoryPage"));
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 import type { AuthResponse } from "@shared/schema";
 
 function AuthenticatedRouter() {
@@ -46,18 +48,27 @@ function AuthenticatedRouter() {
     return <DesktopLogin onLoginSuccess={() => {/* Login success is handled by DesktopAuthContext */}} />;
   }
 
-  // Show main application routes
+  // Show main application routes  
   return (
     <>
       <ReactQueryValidation />
       <WelcomeDialog />
-      <Switch>
-        <Route path="/" component={LandingPage} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/notifications" component={NotificationHistoryPage} />
-        <Route path="/admin" component={AdminDashboard} />
-        <Route component={NotFound} />
-      </Switch>
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      }>
+        <Switch>
+          <Route path="/" component={LandingPage} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/notifications" component={NotificationHistoryPage} />
+          <Route path="/admin" component={AdminDashboard} />
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
     </>
   );
 }
