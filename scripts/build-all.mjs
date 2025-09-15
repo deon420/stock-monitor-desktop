@@ -92,8 +92,28 @@ async function buildAll() {
     }
     await runCommand('npm', ['install'], desktopAppPath);
 
-    console.log('\n🖥️  Step 4: Building desktop application...');
+    console.log('\n🖥️  Step 4: Packaging desktop application (no installers)...');
     await runCommand('npm', ['run', 'build-win'], desktopAppPath);
+    
+    // Clean up any unwanted installer files created by electron-builder
+    const distDir = join(desktopAppPath, 'dist');
+    const unwantedFiles = [
+      join(distDir, 'Stock Monitor Setup 1.0.0.exe'),
+      join(distDir, 'Stock Monitor Setup 1.0.0.exe.blockmap'),
+      join(distDir, '__uninstaller-nsis-stock-monitor-desktop.exe')
+    ];
+    
+    for (const file of unwantedFiles) {
+      try {
+        if (existsSync(file)) {
+          const { unlinkSync } = await import('fs');
+          unlinkSync(file);
+          console.log(`🗑️  Removed unwanted file: ${file}`);
+        }
+      } catch (error) {
+        // Ignore cleanup errors
+      }
+    }
 
     console.log('\n🎨 Step 5: Creating professional installer with Inno Setup...');
     try {

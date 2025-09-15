@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "electron .",
     "build": "electron-builder",
-    "build-win": "electron-builder --win",
+    "build-win": "electron-builder --win --dir",
     "build-frontend": "node ../scripts/copy-frontend.mjs",
     "build-all": "npm run build-frontend && npm run build",
     "postinstall": "electron-builder install-app-deps",
@@ -32,7 +32,7 @@
       "node_modules/**/*"
     ],
     "win": {
-      "target": [],
+      "target": "dir",
       "icon": "res/icon.ico"
     },
     "publish": false
