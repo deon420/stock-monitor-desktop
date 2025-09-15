@@ -105,11 +105,10 @@ async function buildAll() {
       // Run Inno Setup to create professional installer
       await runCommand(`"${isccPath}"`, ['installer.iss'], desktopAppPath);
       
-      console.log('\n🎉 BUILD COMPLETE WITH PROFESSIONAL INSTALLER!');
+      console.log('\n🎉 BUILD COMPLETE!');
       console.log('');
-      console.log('📱 Portable App: desktop-app/dist/win-unpacked/Stock Monitor.exe');
       console.log('🎨 Professional Installer: desktop-app/dist/StockMonitor-Setup-1.0.0.exe');
-      console.log('✨ Features: Windows 11 style GUI with modern appearance');
+      console.log('✨ Features: Windows 11 style GUI with auto-update support');
       console.log('');
       console.log('✅ Ready for professional distribution!');
       
@@ -118,11 +117,12 @@ async function buildAll() {
       console.log('📝 Error details:', innoError.message);
       console.log('📝 Make sure Inno Setup is installed at: C:\\Program Files (x86)\\Inno Setup 6\\');
       console.log('');
-      console.log('🎉 BUILD COMPLETE WITH PORTABLE APP ONLY:');
+      console.log('🎉 BUILD INCOMPLETE - INSTALLER FAILED:');
       console.log('');
-      console.log('📱 Portable App: desktop-app/dist/win-unpacked/Stock Monitor.exe');
+      console.log('❌ No installer created - Inno Setup required for auto-update support');
+      console.log('💡 Please install Inno Setup to create professional installer');
       console.log('');
-      console.log('✅ Ready for distribution!');
+      console.log('⚠️  Build failed - installer is required!');
     }
 
   } catch (error) {
