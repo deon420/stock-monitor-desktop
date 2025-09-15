@@ -38,8 +38,9 @@ WizardSizePercent=100,100
 WindowResizable=yes
 WindowShowCaption=yes
 WindowStartMaximized=no
-WizardImageFile=compiler:WizModernImage-IS.bmp
-WizardSmallImageFile=compiler:WizModernSmallImage-IS.bmp
+; Using default Inno Setup wizard images
+; WizardImageFile=compiler:WizModernImage-IS.bmp
+; WizardSmallImageFile=compiler:WizModernSmallImage-IS.bmp
 
 ; Modern appearance settings
 DisableWelcomePage=no
