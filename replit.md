@@ -21,6 +21,8 @@ Both versions are built with a React frontend using shadcn/ui components and a N
 
 5. **Complete End-to-End Testing:** All fixes verified by architect review. Desktop application now launches successfully with working frontend interface.
 
+6. **Windows Build Compatibility:** Fixed cross-platform entry point detection in copy-frontend.mjs to ensure asset path fixing works correctly when built from downloaded ZIP on Windows systems.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

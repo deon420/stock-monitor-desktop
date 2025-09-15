@@ -183,8 +183,8 @@ function main() {
   log(`Frontend files copied to: ${frontendDestDir}`);
 }
 
-// Run the script
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run the script when executed directly
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))) {
   main();
 }
 
