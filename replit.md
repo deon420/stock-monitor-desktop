@@ -11,11 +11,15 @@ Both versions are built with a React frontend using shadcn/ui components and a N
 
 **Recent Major Update (January 2025):** Successfully resolved critical desktop application issues after extensive debugging:
 
-1. **Frontend White Screen Fix:** Resolved asset path compatibility issue where absolute paths (`/assets/`) broke under Electron's file:// protocol. Implemented automatic path rewriting to relative paths (`./assets/`) during build process.
+1. **EPERM Error Resolution:** Fixed critical "operation not permitted" error that prevented desktop app from launching by moving debug logging from Program Files to proper user data directory using `app.getPath('userData')`.
 
-2. **Professional Installer GUI:** Restored Windows 11-style professional installer using existing Inno Setup script instead of basic electron-builder NSIS. The build system now automatically detects Inno Setup availability and creates modern installer with professional appearance.
+2. **Frontend White Screen Fix:** Resolved asset path compatibility issue where absolute paths (`/assets/`) broke under Electron's file:// protocol. Implemented automatic path rewriting to relative paths (`./assets/`) during build process in `scripts/copy-frontend.mjs`.
 
-3. **Comprehensive Debug System:** Implemented desktop debug logging at project root (`debug/desktop-debug.log`) that captures frontend load failures, asset existence checks, console messages, and render process errors for troubleshooting.
+3. **Professional Installer Only:** Cleaned up build process to create only one installer - the professional Windows 11-style installer using Inno Setup. Removed NSIS fallback to eliminate installer duplication.
+
+4. **Build System Hardening:** Updated build process to auto-detect Inno Setup installation in standard locations, eliminating PATH dependency issues. All TypeScript and JavaScript syntax verified clean.
+
+5. **Complete End-to-End Testing:** All fixes verified by architect review. Desktop application now launches successfully with working frontend interface.
 
 ## User Preferences
 
