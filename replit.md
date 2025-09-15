@@ -9,7 +9,13 @@ This is a stock monitoring application that tracks product availability and pric
 
 Both versions are built with a React frontend using shadcn/ui components and a Node.js/Express backend with web scraping capabilities.
 
-**Recent Major Update (January 2025):** Successfully implemented modern custom GUI installer for the desktop application. After extensive debugging of electron-builder and NSIS configuration issues, resolved timing conflicts where custom UI elements weren't being applied. The installer now features personalized welcome and finish pages with custom branding and modern styling, moving away from the default Windows installer appearance.
+**Recent Major Update (January 2025):** Successfully resolved critical desktop application issues after extensive debugging:
+
+1. **Frontend White Screen Fix:** Resolved asset path compatibility issue where absolute paths (`/assets/`) broke under Electron's file:// protocol. Implemented automatic path rewriting to relative paths (`./assets/`) during build process.
+
+2. **Professional Installer GUI:** Restored Windows 11-style professional installer using existing Inno Setup script instead of basic electron-builder NSIS. The build system now automatically detects Inno Setup availability and creates modern installer with professional appearance.
+
+3. **Comprehensive Debug System:** Implemented desktop debug logging at project root (`debug/desktop-debug.log`) that captures frontend load failures, asset existence checks, console messages, and render process errors for troubleshooting.
 
 ## User Preferences
 

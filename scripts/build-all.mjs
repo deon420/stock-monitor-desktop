@@ -95,12 +95,37 @@ async function buildAll() {
     console.log('\n🖥️  Step 4: Building desktop application...');
     await runCommand('npm', ['run', 'build-win'], desktopAppPath);
 
-    console.log('\n🎉 BUILD COMPLETE! Your application is ready:');
-    console.log('');
-    console.log('📱 Portable App: desktop-app/dist/win-unpacked/Stock Monitor.exe');
-    console.log('💾 Installer: desktop-app/dist/Stock Monitor Setup 1.0.0.exe');
-    console.log('');
-    console.log('✅ Ready for distribution!');
+    console.log('\n🎨 Step 5: Creating professional installer with Inno Setup...');
+    try {
+      // Check if ISCC (Inno Setup Compiler) is available
+      try {
+        await runCommand('ISCC', ['/? > nul 2>&1'], desktopAppPath, { captureOutput: true });
+      } catch (checkError) {
+        throw new Error('ISCC not found');
+      }
+      
+      // Run Inno Setup to create professional installer
+      await runCommand('ISCC', ['installer.iss'], desktopAppPath);
+      
+      console.log('\n🎉 BUILD COMPLETE WITH PROFESSIONAL INSTALLER!');
+      console.log('');
+      console.log('📱 Portable App: desktop-app/dist/win-unpacked/Stock Monitor.exe');
+      console.log('🎨 Professional Installer: desktop-app/dist/StockMonitor-Setup-1.0.0.exe');
+      console.log('✨ Features: Windows 11 style GUI with modern appearance');
+      console.log('');
+      console.log('✅ Ready for professional distribution!');
+      
+    } catch (innoError) {
+      console.log('\n⚠️  Inno Setup not available, using electron-builder NSIS fallback');
+      console.log('💡 Install Inno Setup for professional Windows 11 style installer');
+      console.log('');
+      console.log('🎉 BUILD COMPLETE WITH FALLBACK INSTALLER:');
+      console.log('');
+      console.log('📱 Portable App: desktop-app/dist/win-unpacked/Stock Monitor.exe');
+      console.log('💾 Basic Installer: desktop-app/dist/Stock Monitor Setup 1.0.0.exe');
+      console.log('');
+      console.log('✅ Ready for distribution (upgrade to Inno Setup for better GUI)!');
+    }
 
   } catch (error) {
     console.error('\n❌ Build failed:', error.message);

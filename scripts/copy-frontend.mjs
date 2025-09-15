@@ -71,6 +71,42 @@ function copyDirectory(src, dest) {
   }
 }
 
+function fixAssetPaths(targetDir) {
+  try {
+    log('Fixing asset paths for Electron file:// protocol...');
+    
+    const indexPath = path.join(targetDir, 'index.html');
+    if (!fs.existsSync(indexPath)) {
+      error(`index.html not found at ${indexPath}`);
+      return;
+    }
+    
+    // Read the HTML file
+    let htmlContent = fs.readFileSync(indexPath, 'utf8');
+    log(`Original HTML content length: ${htmlContent.length}`);
+    
+    // Fix asset paths: change /assets/ to ./assets/
+    const originalContent = htmlContent;
+    htmlContent = htmlContent
+      .replace(/href="\/assets\//g, 'href="./assets/')
+      .replace(/src="\/assets\//g, 'src="./assets/');
+    
+    // Count changes made
+    const hrefChanges = (originalContent.match(/href="\/assets\//g) || []).length;
+    const srcChanges = (originalContent.match(/src="\/assets\//g) || []).length;
+    
+    if (hrefChanges + srcChanges > 0) {
+      fs.writeFileSync(indexPath, htmlContent, 'utf8');
+      log(`✓ Fixed ${hrefChanges} href and ${srcChanges} src asset paths`);
+    } else {
+      log('✓ No asset paths needed fixing');
+    }
+    
+  } catch (err) {
+    error(`Failed to fix asset paths: ${err.message}`);
+  }
+}
+
 function verifyFiles(targetDir) {
   log('Verifying copied files...');
   
@@ -134,6 +170,9 @@ function main() {
   
   // Step 3: Copy to desktop app
   copyDirectory(sourceDir, frontendDestDir);
+  
+  // Step 3.5: Fix asset paths for Electron (file:// protocol)
+  fixAssetPaths(frontendDestDir);
   
   // Step 4: Verify the copy
   verifyFiles(frontendDestDir);

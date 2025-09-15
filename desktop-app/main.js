@@ -12,6 +12,33 @@ const log = require('electron-log');
 log.transports.file.level = 'debug';
 log.transports.console.level = 'debug';
 
+// Initialize desktop debug logging at project root
+const debugDir = path.join(__dirname, '..', 'debug');
+const debugLogPath = path.join(debugDir, 'desktop-debug.log');
+
+// Create debug directory if it doesn't exist
+if (!fs.existsSync(debugDir)) {
+  fs.mkdirSync(debugDir, { recursive: true });
+}
+
+function writeDebugLog(message) {
+  try {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] ${message}\n`;
+    fs.appendFileSync(debugLogPath, logEntry, 'utf8');
+  } catch (error) {
+    console.error('[DEBUG LOG] Failed to write debug log:', error.message);
+  }
+}
+
+// Clear previous debug log on startup
+try {
+  fs.writeFileSync(debugLogPath, `[${new Date().toISOString()}] Desktop debug log started\n`, 'utf8');
+  writeDebugLog('Debug logging initialized at: ' + debugLogPath);
+} catch (error) {
+  console.error('[DEBUG LOG] Failed to initialize debug log:', error.message);
+}
+
 // Environment variable to control update checking (default: false for production safety)
 const CHECK_UPDATES = process.env.CHECK_UPDATES === 'true';
 
@@ -443,13 +470,52 @@ function createWindow() {
 
     // Load the local frontend files
     const frontendPath = path.join(__dirname, 'frontend', 'index.html');
+    const assetsPath = path.join(__dirname, 'frontend', 'assets');
     
     log.info('Loading local frontend from:', frontendPath);
+    writeDebugLog(`Loading frontend from: ${frontendPath}`);
+    
+    // Debug: Check frontend file existence and log results
+    const frontendExists = fs.existsSync(frontendPath);
+    const assetsExists = fs.existsSync(assetsPath);
+    writeDebugLog(`Frontend file exists: ${frontendExists}`);
+    writeDebugLog(`Assets directory exists: ${assetsExists}`);
+    
+    if (assetsExists) {
+      try {
+        const assetFiles = fs.readdirSync(assetsPath);
+        writeDebugLog(`Assets found: ${assetFiles.join(', ')}`);
+      } catch (error) {
+        writeDebugLog(`Failed to read assets directory: ${error.message}`);
+      }
+    }
+    
+    // Setup debug event handlers for webContents
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      const debugInfo = `Frontend load failed - Code: ${errorCode}, Description: ${errorDescription}, URL: ${validatedURL}`;
+      log.error(debugInfo);
+      writeDebugLog(debugInfo);
+    });
+    
+    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      const debugInfo = `Console ${level}: ${message} (line: ${line}, source: ${sourceId})`;
+      writeDebugLog(debugInfo);
+    });
+    
+    mainWindow.webContents.on('render-process-gone', (event, details) => {
+      const debugInfo = `Render process gone - Reason: ${details.reason}, Exit code: ${details.exitCode}`;
+      log.error(debugInfo);
+      writeDebugLog(debugInfo);
+    });
     
     // Check if the frontend files exist
-    if (fs.existsSync(frontendPath)) {
+    if (frontendExists) {
       mainWindow.loadFile(frontendPath).catch(error => {
-        log.error('Failed to load local frontend:', error);
+        const errorInfo = `Failed to load frontend: ${error.message}`;
+        log.error(errorInfo);
+        writeDebugLog(errorInfo);
+        writeDebugLog(`Error stack: ${error.stack}`);
+        
         // Show error page if files are missing
         const errorHtml = `
           <html>
@@ -467,6 +533,7 @@ function createWindow() {
               <div class="instruction">
                 <p>The frontend files are missing or corrupted.</p>
                 <p>Expected location: ${frontendPath}</p>
+                <p>Debug log: ${debugLogPath}</p>
               </div>
             </body>
           </html>
@@ -474,7 +541,10 @@ function createWindow() {
         mainWindow.loadURL(`data:text/html,${encodeURIComponent(errorHtml)}`);
       });
     } else {
-      log.error('Frontend files not found at:', frontendPath);
+      const errorInfo = `Frontend files not found at: ${frontendPath}`;
+      log.error(errorInfo);
+      writeDebugLog(errorInfo);
+      
       const errorHtml = `
         <html>
           <head>
@@ -491,6 +561,7 @@ function createWindow() {
             <div class="instruction">
               <p>Please build the frontend files first.</p>
               <p>Expected location: ${frontendPath}</p>
+              <p>Debug log: ${debugLogPath}</p>
             </div>
           </body>
         </html>
