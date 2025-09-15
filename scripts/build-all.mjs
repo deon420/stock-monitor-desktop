@@ -97,49 +97,13 @@ async function buildAll() {
 
     console.log('\n🎨 Step 5: Creating professional installer with Inno Setup...');
     try {
-      // Try standard Inno Setup installation locations
-      const isccPaths = [
-        'C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe',
-        'C:\\Program Files\\Inno Setup 6\\ISCC.exe',
-        'ISCC'  // Fallback to PATH
-      ];
+      // Direct path to ISCC.exe 
+      const isccPath = 'C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe';
       
-      let isccFound = false;
-      let isccPath = '';
-      
-      for (const path of isccPaths) {
-        try {
-          if (path === 'ISCC') {
-            // Try PATH version
-            await runCommand('ISCC', ['/? > nul 2>&1'], desktopAppPath, { captureOutput: true });
-            isccPath = 'ISCC';
-            isccFound = true;
-            break;
-          } else {
-            // Check if file exists
-            const { existsSync } = await import('fs');
-            if (existsSync(path)) {
-              // Test it works
-              await runCommand(`"${path}"`, ['/? > nul 2>&1'], desktopAppPath, { captureOutput: true });
-              isccPath = `"${path}"`;
-              isccFound = true;
-              break;
-            }
-          }
-        } catch (error) {
-          // Try next path
-          continue;
-        }
-      }
-      
-      if (!isccFound) {
-        throw new Error('ISCC not found in any standard location');
-      }
-      
-      console.log(`Found Inno Setup at: ${isccPath}`);
+      console.log(`Using Inno Setup at: ${isccPath}`);
       
       // Run Inno Setup to create professional installer
-      await runCommand(isccPath, ['installer.iss'], desktopAppPath);
+      await runCommand(`"${isccPath}"`, ['installer.iss'], desktopAppPath);
       
       console.log('\n🎉 BUILD COMPLETE WITH PROFESSIONAL INSTALLER!');
       console.log('');
@@ -150,15 +114,15 @@ async function buildAll() {
       console.log('✅ Ready for professional distribution!');
       
     } catch (innoError) {
-      console.log('\n❌ Inno Setup not available or failed');
-      console.log('💡 Install Inno Setup from: https://jrsoftware.org/isdl.php');
+      console.log('\n❌ Inno Setup failed');
       console.log('📝 Error details:', innoError.message);
+      console.log('📝 Make sure Inno Setup is installed at: C:\\Program Files (x86)\\Inno Setup 6\\');
       console.log('');
       console.log('🎉 BUILD COMPLETE WITH PORTABLE APP ONLY:');
       console.log('');
       console.log('📱 Portable App: desktop-app/dist/win-unpacked/Stock Monitor.exe');
       console.log('');
-      console.log('✅ Ready for distribution (install Inno Setup for professional installer)!');
+      console.log('✅ Ready for distribution!');
     }
 
   } catch (error) {
