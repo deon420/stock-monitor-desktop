@@ -32,9 +32,9 @@ class AntiBotLogger {
     // Human-readable format for anti-bot events
     const antiBotFormat = winston.format.printf(({ level, message, timestamp, ...meta }) => {
       if (meta.type === 'DETECTION_EVENT') {
-        return this.formatDetectionEvent(timestamp, meta);
+        return this.formatDetectionEvent(timestamp as string, meta);
       } else if (meta.type === 'REQUEST_STATS') {
-        return this.formatRequestStats(timestamp, meta);
+        return this.formatRequestStats(timestamp as string, meta);
       }
       return `[${timestamp}] ${level.toUpperCase()}: ${message}`;
     });
@@ -75,7 +75,7 @@ class AntiBotLogger {
       format: winston.format.combine(
         winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
         winston.format.printf(({ timestamp, message, ...meta }) => {
-          return this.formatConfigEvent(timestamp, message, meta);
+          return this.formatConfigEvent(timestamp as string, message as string, meta);
         })
       ),
       transports: [
@@ -94,7 +94,7 @@ class AntiBotLogger {
       format: winston.format.combine(
         winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
         winston.format.printf(({ timestamp, message, ...meta }) => {
-          return this.formatStatsEvent(timestamp, message, meta);
+          return this.formatStatsEvent(timestamp as string, message as string, meta);
         })
       ),
       transports: [

@@ -8,7 +8,7 @@ import {
   DetectionType,
   SolutionDefinition 
 } from './solution-types';
-import { AntiBotDetectionResult } from '../client/src/contexts/AntiDetectionContext';
+import { AntiBotDetectionResult } from './solution-types';
 import { 
   SOLUTION_DEFINITIONS, 
   DETECTION_SOLUTION_MAPPING, 
@@ -234,9 +234,9 @@ export class SolutionSuggestionEngine {
     solutions = filterSolutionsByEnvironment(solutions, isDesktop);
     
     // Add platform-specific solutions
-    const platformSolutions = PLATFORM_SOLUTIONS[detection.platform] || [];
+    const platformSolutions = PLATFORM_SOLUTIONS[detection.platform as keyof typeof PLATFORM_SOLUTIONS] || [];
     const additionalSolutions = platformSolutions
-      .map(id => getSolutionById(id))
+      .map((id: string) => getSolutionById(id))
       .filter(Boolean) as SolutionDefinition[];
     
     // Merge and deduplicate

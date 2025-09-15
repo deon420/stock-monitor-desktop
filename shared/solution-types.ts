@@ -1,5 +1,19 @@
 import { z } from "zod";
 
+// Anti-bot detection result interface (imported from scraping-worker.ts)
+export interface AntiBotDetectionResult {
+  isBlocked: boolean;
+  detectionType: 'cloudflare' | 'aws_waf' | 'rate_limit' | 'ip_block' | 'captcha' | 'js_challenge' | 'redirect_loop' | 'platform_specific' | 'none';
+  confidence: number; // 0-1 scale
+  platform: 'amazon' | 'walmart';
+  responseCode: number;
+  responseTime: number;
+  rawResponse?: string;
+  timestamp: number;
+  suggestedAction: string;
+  details: Record<string, any>;
+}
+
 // Solution category types
 export type SolutionCategory = 
   | 'user_agent_rotation'
