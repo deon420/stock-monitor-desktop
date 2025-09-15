@@ -2,6 +2,8 @@
 dist/
 dist-electron/
 build/
+desktop-app/dist/
+desktop-app/frontend/
 *.exe
 *.dmg
 *.deb
@@ -9,3 +11,8 @@ build/
 *.AppImage
 standalone/
 client/public/StockMonitor*.exe
+
+# Logs and temporary files
+logs/
+*.log
+attached_assets/
