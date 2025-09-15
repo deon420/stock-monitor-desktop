@@ -89,11 +89,13 @@ function fixAssetPaths(targetDir) {
     const originalContent = htmlContent;
     htmlContent = htmlContent
       .replace(/href="\/assets\//g, 'href="./assets/')
-      .replace(/src="\/assets\//g, 'src="./assets/');
+      .replace(/src="\/assets\//g, 'src="./assets/')
+      .replace(/href='\/assets\//g, "href='./assets/")
+      .replace(/src='\/assets\//g, "src='./assets/");
     
     // Count changes made
-    const hrefChanges = (originalContent.match(/href="\/assets\//g) || []).length;
-    const srcChanges = (originalContent.match(/src="\/assets\//g) || []).length;
+    const hrefChanges = (originalContent.match(/href=["']\/assets\//g) || []).length;
+    const srcChanges = (originalContent.match(/src=["']\/assets\//g) || []).length;
     
     if (hrefChanges + srcChanges > 0) {
       fs.writeFileSync(indexPath, htmlContent, 'utf8');
