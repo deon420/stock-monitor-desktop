@@ -12,17 +12,32 @@ const log = require('electron-log');
 log.transports.file.level = 'debug';
 log.transports.console.level = 'debug';
 
-// Initialize desktop debug logging at project root
-const debugDir = path.join(__dirname, '..', 'debug');
-const debugLogPath = path.join(debugDir, 'desktop-debug.log');
+// Initialize desktop debug logging in user data directory
+let debugDir;
+let debugLogPath;
 
-// Create debug directory if it doesn't exist
-if (!fs.existsSync(debugDir)) {
-  fs.mkdirSync(debugDir, { recursive: true });
+// Initialize debug logging after app is ready
+function initializeDebugLogging() {
+  try {
+    debugDir = path.join(app.getPath('userData'), 'debug');
+    debugLogPath = path.join(debugDir, 'desktop-debug.log');
+    
+    // Create debug directory if it doesn't exist
+    if (!fs.existsSync(debugDir)) {
+      fs.mkdirSync(debugDir, { recursive: true });
+    }
+    
+    // Clear previous debug log on startup
+    fs.writeFileSync(debugLogPath, `[${new Date().toISOString()}] Desktop debug log started\n`, 'utf8');
+    writeDebugLog('Debug logging initialized at: ' + debugLogPath);
+  } catch (error) {
+    console.error('[DEBUG LOG] Failed to initialize debug log:', error.message);
+  }
 }
 
 function writeDebugLog(message) {
   try {
+    if (!debugLogPath) return; // Skip if not initialized yet
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] ${message}\n`;
     fs.appendFileSync(debugLogPath, logEntry, 'utf8');
@@ -31,13 +46,7 @@ function writeDebugLog(message) {
   }
 }
 
-// Clear previous debug log on startup
-try {
-  fs.writeFileSync(debugLogPath, `[${new Date().toISOString()}] Desktop debug log started\n`, 'utf8');
-  writeDebugLog('Debug logging initialized at: ' + debugLogPath);
-} catch (error) {
-  console.error('[DEBUG LOG] Failed to initialize debug log:', error.message);
-}
+// Debug logging will be initialized after app is ready
 
 // Environment variable to control update checking (default: false for production safety)
 const CHECK_UPDATES = process.env.CHECK_UPDATES === 'true';
@@ -614,6 +623,9 @@ function createWindow() {
 // Initialize database and app
 async function initializeApp() {
   try {
+    // Initialize debug logging first
+    initializeDebugLogging();
+    
     log.info('Initializing desktop database...');
     database = new DesktopDatabase();
     await database.initialize();
