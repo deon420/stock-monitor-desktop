@@ -1,14 +1,21 @@
-# Stock Monitor - Complete Windows Deployment Guide
+# Stock Monitor - Desktop Application Windows Deployment Guide
 
 ## Overview
 
-This guide provides complete step-by-step instructions for building the Stock Monitor application for Windows deployment. The Stock Monitor is a React-based web application with an optional Electron desktop version that tracks product availability and prices across Amazon and Walmart.
+**🚨 IMPORTANT: This is a DESKTOP-ONLY deployment guide for building a standalone Windows application.**
+
+This guide provides complete step-by-step instructions for building the Stock Monitor **desktop application** for Windows deployment. The Stock Monitor is an Electron-based desktop application that tracks product availability and prices across Amazon and Walmart.
 
 **What You're Building:**
-- ✅ **Modern React Web Application** - Full-featured web demo with responsive design
-- ✅ **Electron Desktop Application** - Complete offline desktop app with persistence
-- ✅ **Professional Windows Installer** - Custom GUI installer with modern styling
-- ✅ **Production-Ready Package** - Properly signed, tested, and verified distribution
+- 🎯 **Electron Desktop Application** - Complete offline desktop app with local persistence
+- 📦 **Professional Windows Installer** - Custom GUI installer with modern styling  
+- 🚀 **Production-Ready Package** - Properly tested and verified distribution
+- 🌐 **Embedded Web Frontend** - React frontend embedded within the desktop app (not a separate web service)
+
+**What You're NOT Building:**
+- ❌ **Standalone Web Application** - This guide does not create a web service or website
+- ❌ **Server Backend** - No separate backend server for web deployment
+- ❌ **Web Demo Service** - The web demo is only used to generate static frontend assets
 
 ## Prerequisites
 
@@ -105,10 +112,10 @@ stock-monitor/
    ```
 
 ### Why This Cleanup is Required
-- **Prevents conflicts** between web and desktop dependencies
-- **Reduces bundle size** for web deployment
+- **Prevents conflicts** between web demo and desktop dependencies
 - **Eliminates build errors** from incompatible modules
-- **Ensures proper isolation** between web and desktop versions
+- **Ensures proper isolation** between demo generation and desktop packaging
+- **Desktop-specific dependencies** belong only in `desktop-app/package.json`
 
 ## Part 2: Environment Setup and Installation
 
@@ -158,47 +165,48 @@ cd ..
 - All packages installed successfully
 - Native modules compiled successfully
 
-## Part 3: Build the Web Application
+## Part 3: Generate Frontend Assets for Desktop Embedding
 
-### Step 4: Build React Frontend
+### Step 4: Build Frontend Assets (For Desktop App Embedding)
 ```cmd
-:: From project root, build the Vite frontend
+:: From project root, build the Vite frontend for desktop embedding
 npm run build
 ```
 
 **What this does:**
-- Compiles TypeScript to JavaScript
-- Bundles React components and assets
-- Optimizes images and CSS
-- Creates production build in `dist/` folder
+- Compiles React demo interface to static assets
+- Creates optimized JavaScript and CSS bundles
+- Generates static HTML for desktop app embedding
+- **Note**: These assets will be embedded in the desktop app, not deployed as a web service
 
 **Expected Files Created:**
 ```
-dist/
+dist/public/
 ├── assets/
-│   ├── index-[hash].js      # Main application bundle
+│   ├── index-[hash].js      # React frontend bundle
 │   └── index-[hash].css     # Compiled styles
-└── index.html               # Entry point
+└── index.html               # Entry point for desktop embedding
 ```
 
-### Step 5: Copy Frontend to Desktop App
+### Step 5: Copy Frontend Assets to Desktop App
 ```cmd
-:: Use the cross-platform copy script
+:: Use the cross-platform copy script to embed frontend in desktop app
 node scripts/copy-frontend.mjs
 ```
 
 **What this does:**
-- Verifies the web build completed successfully
-- Copies all frontend assets to `desktop-app/frontend/`
-- Ensures desktop app can run offline
+- Verifies the frontend assets were built successfully
+- Copies static assets from `dist/public/` to `desktop-app/frontend/`
+- Embeds the React interface within the desktop application
+- **Important**: Desktop app will serve these assets locally, no web server needed
 
 **Expected Output:**
 ```
 [copy-frontend] Starting cross-platform frontend copy process
 [copy-frontend] Building Vite frontend...
 [copy-frontend] ✓ Building Vite frontend completed
-[copy-frontend] Using dist as source directory
-[copy-frontend] Copying dist to desktop-app\frontend...
+[copy-frontend] Using dist/public as source directory
+[copy-frontend] Copying dist/public to desktop-app\frontend...
 [copy-frontend] ✓ Copy completed successfully
 [copy-frontend] Verifying copied files...
 [copy-frontend] ✓ File verification completed
@@ -277,12 +285,12 @@ desktop-app/dist/
 
 ### Step 9: Verify Build Results
 
-**Check Web Application:**
+**Check Frontend Demo (Optional - Demo Only):**
 1. Navigate to project root
 2. Run: `npm run dev`
 3. Open browser to `http://localhost:5000`
-4. Verify the Stock Monitor interface loads correctly
-5. Test adding/removing products in demo mode
+4. Verify the demo interface loads (resets on page refresh)
+5. **NOTE**: This is just a frontend DEMO - the real product is the desktop app below
 
 **Check Desktop Application:**
 1. Navigate to `desktop-app/dist/win-unpacked/`
@@ -321,38 +329,35 @@ desktop-app/dist/
 
 ```
 stock-monitor/
-├── dist/                                    # Web application build
+├── dist/                                    # Frontend assets build (for desktop embedding)
 ├── desktop-app/
 │   ├── dist/
 │   │   ├── win-unpacked/
 │   │   │   └── Stock Monitor.exe            # ✅ Portable executable
 │   │   ├── Stock Monitor Setup 1.0.0.exe   # ✅ Standard installer
 │   │   └── StockMonitor-Setup-1.0.0.exe    # ✅ Custom installer
-│   └── frontend/                           # ✅ Copied web assets
+│   └── frontend/                           # ✅ Embedded frontend assets
 └── node_modules/                           # ✅ Dependencies installed
 ```
 
-## Deployment Options
+## Desktop Application Deployment Options
 
-### Option 1: Portable Application
+### Option 1: Portable Desktop Application
 - **File**: `desktop-app/dist/win-unpacked/Stock Monitor.exe`
-- **Advantages**: No installation required, runs from any location
-- **Best for**: Personal use, testing, USB deployment
+- **Advantages**: No installation required, runs from any location, self-contained
+- **Best for**: Personal use, testing, USB deployment, quick distribution
 
-### Option 2: Standard Installer
+### Option 2: Standard Desktop Installer
 - **File**: `desktop-app/dist/Stock Monitor Setup 1.0.0.exe`
-- **Advantages**: Standard Windows installer, automatic updates support
-- **Best for**: Basic deployment, simple distribution
+- **Advantages**: Standard Windows installer, Start Menu integration, uninstall support
+- **Best for**: Basic desktop deployment, standard distribution
 
-### Option 3: Custom Installer
+### Option 3: Custom Desktop Installer
 - **File**: `desktop-app/dist/StockMonitor-Setup-1.0.0.exe`
-- **Advantages**: Professional appearance, custom branding, modern UI
-- **Best for**: Commercial distribution, professional deployment
+- **Advantages**: Professional appearance, custom branding, modern installer UI
+- **Best for**: Commercial desktop distribution, professional deployment
 
-### Option 4: Web Application
-- **Deploy**: Upload `dist/` folder contents to web server
-- **Advantages**: No installation, cross-platform, automatic updates
-- **Best for**: SaaS deployment, demo purposes
+**Note**: All options create standalone desktop applications that do not require separate web servers or backend services. The React interface is embedded within the Electron application.
 
 ## Troubleshooting Common Issues
 
@@ -415,12 +420,13 @@ taskkill /PID [process_id] /F
 
 ### Before Distribution
 - [ ] All builds complete without errors
-- [ ] Web application tested in browser
+- [ ] Frontend assets generated correctly
 - [ ] Desktop application tested standalone
 - [ ] Installer creates proper shortcuts
 - [ ] Application persists data correctly
 - [ ] All dependencies included in build
 - [ ] Antivirus scan completed (optional)
+- [ ] Desktop app runs offline without internet connection
 
 ### Code Signing (Recommended for Production)
 1. **Obtain Code Signing Certificate**
