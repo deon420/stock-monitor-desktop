@@ -7,7 +7,7 @@
     "dev": "electron .",
     "build": "electron-builder",
     "build-win": "electron-builder --win",
-    "build-frontend": "cd .. && npm run build && cp -r dist/public/* desktop-app/frontend/",
+    "build-frontend": "node ../scripts/copy-frontend.mjs",
     "build-all": "npm run build-frontend && npm run build",
     "postinstall": "electron-builder install-app-deps"
   },
@@ -15,7 +15,7 @@
     "appId": "com.stockmonitor.app",
     "productName": "Stock Monitor",
     "copyright": "Made by one person who cares",
-    "electronVersion": "28.0.0",
+    "electronVersion": "38.1.0",
     "directories": {
       "buildResources": "res",
       "output": "dist"
@@ -41,20 +41,20 @@
     }
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "axios": "^1.6.2",
-    "cheerio": "^1.0.0-rc.12",
-    "node-cron": "^3.0.3",
-    "get-port": "^7.0.0",
-    "wait-port": "^1.0.4",
-    "better-sqlite3": "^9.0.0",
-    "electron-updater": "^6.1.7",
+    "express": "^4.21.2",
+    "axios": "^1.12.1",
+    "cheerio": "^1.1.2",
+    "node-cron": "^4.2.1",
+    "get-port": "^7.1.0",
+    "wait-port": "^1.1.0",
+    "better-sqlite3": "^12.2.0",
+    "electron-updater": "^6.3.4",
     "keytar": "^7.9.0",
-    "electron-log": "^4.4.8"
+    "electron-log": "^5.4.3"
   },
   "devDependencies": {
-    "electron": "^28.0.0",
-    "electron-builder": "^24.9.1"
+    "electron": "^38.1.0",
+    "electron-builder": "^26.0.12"
   },
   "repository": {
     "type": "git",

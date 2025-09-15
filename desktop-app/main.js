@@ -12,9 +12,17 @@ const log = require('electron-log');
 log.transports.file.level = 'debug';
 log.transports.console.level = 'debug';
 
-// Configure auto-updater logging
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
+// Environment variable to control update checking (default: false for production safety)
+const CHECK_UPDATES = process.env.CHECK_UPDATES === 'true';
+
+// Configure auto-updater logging only if updates are enabled
+if (CHECK_UPDATES) {
+  autoUpdater.logger = log;
+  autoUpdater.logger.transports.file.level = 'info';
+  log.info('[AutoUpdater] Update checking enabled via CHECK_UPDATES environment variable');
+} else {
+  log.info('[AutoUpdater] Update checking disabled. Set CHECK_UPDATES=true to enable updates');
+}
 
 let mainWindow;
 let database;
@@ -28,78 +36,89 @@ let userSettings = null;
 // AUTO-UPDATER CONFIGURATION AND HANDLERS
 // ============================================
 
-// Configure auto-updater settings
-autoUpdater.checkForUpdatesAndNotify = true;
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
+// Configure auto-updater settings only if updates are enabled
+if (CHECK_UPDATES) {
+  autoUpdater.checkForUpdatesAndNotify = true;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
 
-// Auto-updater event handlers
-autoUpdater.on('checking-for-update', () => {
-  log.info('[AutoUpdater] Checking for updates...');
-});
+  // Auto-updater event handlers
+  autoUpdater.on('checking-for-update', () => {
+    log.info('[AutoUpdater] Checking for updates...');
+  });
 
-autoUpdater.on('update-available', (info) => {
-  log.info('[AutoUpdater] Update available:', info.version);
-  log.info('[AutoUpdater] Release notes:', info.releaseNotes);
-  
-  // Show notification to user if window is available
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('update-available', {
-      version: info.version,
-      releaseNotes: info.releaseNotes,
-      releaseDate: info.releaseDate
-    });
-  }
-});
+  autoUpdater.on('update-available', (info) => {
+    log.info('[AutoUpdater] Update available:', info.version);
+    log.info('[AutoUpdater] Release notes:', info.releaseNotes);
+    
+    // Show notification to user if window is available
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-available', {
+        version: info.version,
+        releaseNotes: info.releaseNotes,
+        releaseDate: info.releaseDate
+      });
+    }
+  });
 
-autoUpdater.on('update-not-available', (info) => {
-  log.info('[AutoUpdater] Update not available. Current version:', info.version);
-});
+  autoUpdater.on('update-not-available', (info) => {
+    log.info('[AutoUpdater] Update not available. Current version:', info.version);
+  });
 
-autoUpdater.on('error', (err) => {
-  log.error('[AutoUpdater] Error occurred:', err.message);
-  log.error('[AutoUpdater] Error stack:', err.stack);
-  
-  // Notify frontend of update error
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('update-error', {
-      message: err.message,
-      stack: err.stack
-    });
-  }
-});
+  autoUpdater.on('error', (err) => {
+    log.error('[AutoUpdater] Error occurred:', err.message);
+    log.error('[AutoUpdater] Error stack:', err.stack);
+    
+    // Notify frontend of update error
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-error', {
+        message: err.message,
+        stack: err.stack
+      });
+    }
+  });
 
-autoUpdater.on('download-progress', (progressObj) => {
-  const message = `Download speed: ${Math.round(progressObj.bytesPerSecond / 1024)}kb/s - Downloaded ${Math.round(progressObj.percent)}% (${Math.round(progressObj.transferred / 1024 / 1024)}MB/${Math.round(progressObj.total / 1024 / 1024)}MB)`;
-  log.info(`[AutoUpdater] ${message}`);
-  
-  // Send progress to frontend
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('update-download-progress', {
-      percent: Math.round(progressObj.percent),
-      transferred: Math.round(progressObj.transferred / 1024 / 1024),
-      total: Math.round(progressObj.total / 1024 / 1024),
-      bytesPerSecond: Math.round(progressObj.bytesPerSecond / 1024)
-    });
-  }
-});
+  autoUpdater.on('download-progress', (progressObj) => {
+    const message = `Download speed: ${Math.round(progressObj.bytesPerSecond / 1024)}kb/s - Downloaded ${Math.round(progressObj.percent)}% (${Math.round(progressObj.transferred / 1024 / 1024)}MB/${Math.round(progressObj.total / 1024 / 1024)}MB)`;
+    log.info(`[AutoUpdater] ${message}`);
+    
+    // Send progress to frontend
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-download-progress', {
+        percent: Math.round(progressObj.percent),
+        transferred: Math.round(progressObj.transferred / 1024 / 1024),
+        total: Math.round(progressObj.total / 1024 / 1024),
+        bytesPerSecond: Math.round(progressObj.bytesPerSecond / 1024)
+      });
+    }
+  });
 
-autoUpdater.on('update-downloaded', (info) => {
-  log.info('[AutoUpdater] Update downloaded successfully:', info.version);
-  log.info('[AutoUpdater] Update will be installed on next app restart');
-  
-  // Notify frontend that update is ready
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('update-downloaded', {
-      version: info.version,
-      releaseNotes: info.releaseNotes,
-      releaseDate: info.releaseDate
-    });
-  }
-});
+  autoUpdater.on('update-downloaded', (info) => {
+    log.info('[AutoUpdater] Update downloaded successfully:', info.version);
+    log.info('[AutoUpdater] Update will be installed on next app restart');
+    
+    // Notify frontend that update is ready
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-downloaded', {
+        version: info.version,
+        releaseNotes: info.releaseNotes,
+        releaseDate: info.releaseDate
+      });
+    }
+  });
+
+  log.info('[AutoUpdater] Event handlers configured successfully');
+} else {
+  log.info('[AutoUpdater] Update functionality disabled - no event handlers or configuration applied');
+}
 
 // Function to check for updates manually
 function checkForUpdates() {
+  if (!CHECK_UPDATES) {
+    log.info('[AutoUpdater] Update checking disabled via CHECK_UPDATES environment variable');
+    return;
+  }
+  
   if (process.env.NODE_ENV === 'development') {
     log.info('[AutoUpdater] Skipping update check in development mode');
     return;
@@ -115,11 +134,18 @@ function checkForUpdates() {
 
 // Function to install update and restart
 function installUpdateAndRestart() {
+  if (!CHECK_UPDATES) {
+    log.warn('[AutoUpdater] Cannot install update - update checking disabled via CHECK_UPDATES environment variable');
+    return false;
+  }
+  
   try {
     log.info('[AutoUpdater] Installing update and restarting...');
     autoUpdater.quitAndInstall();
+    return true;
   } catch (error) {
     log.error('[AutoUpdater] Failed to install update:', error.message);
+    return false;
   }
 }
 
@@ -133,7 +159,7 @@ class SecureMemoryStorage {
 
   encrypt(data) {
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipherGCM(this.algorithm, this.encryptionKey, iv);
+    const cipher = crypto.createCipheriv(this.algorithm, this.encryptionKey, iv);
     cipher.setAAD(Buffer.from('auth-data'));
     
     let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
@@ -150,7 +176,7 @@ class SecureMemoryStorage {
   decrypt(encryptedData) {
     try {
       const iv = Buffer.from(encryptedData.iv, 'hex');
-      const decipher = crypto.createDecipherGCM(this.algorithm, this.encryptionKey, iv);
+      const decipher = crypto.createDecipheriv(this.algorithm, this.encryptionKey, iv);
       decipher.setAAD(Buffer.from('auth-data'));
       decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'));
       
@@ -1324,6 +1350,15 @@ ipcMain.handle('tray-refresh-settings', async () => {
 // Manual check for updates
 ipcMain.handle('updater-check-for-updates', async () => {
   try {
+    if (!CHECK_UPDATES) {
+      log.info('[IPC AutoUpdater] Manual update check requested but updates are disabled');
+      return { 
+        success: false, 
+        error: 'Update checking disabled. Set CHECK_UPDATES=true environment variable to enable updates.',
+        disabled: true 
+      };
+    }
+    
     log.info('[IPC AutoUpdater] Manual update check requested');
     checkForUpdates();
     return { success: true, message: 'Update check initiated' };
@@ -1336,9 +1371,21 @@ ipcMain.handle('updater-check-for-updates', async () => {
 // Install update and restart
 ipcMain.handle('updater-install-and-restart', async () => {
   try {
+    if (!CHECK_UPDATES) {
+      log.info('[IPC AutoUpdater] Install and restart requested but updates are disabled');
+      return { 
+        success: false, 
+        error: 'Update installation disabled. Set CHECK_UPDATES=true environment variable to enable updates.',
+        disabled: true 
+      };
+    }
+    
     log.info('[IPC AutoUpdater] Install and restart requested');
-    installUpdateAndRestart();
-    return { success: true, message: 'Update installation initiated' };
+    const result = installUpdateAndRestart();
+    return { 
+      success: result, 
+      message: result ? 'Update installation initiated' : 'Update installation failed'
+    };
   } catch (error) {
     log.error('[IPC AutoUpdater] Install and restart failed:', error.message);
     return { success: false, error: error.message };
@@ -1363,9 +1410,11 @@ ipcMain.handle('updater-get-status', async () => {
     const isDev = process.env.NODE_ENV === 'development';
     const status = {
       isDevelopment: isDev,
-      updateCheckEnabled: !isDev,
-      autoDownload: autoUpdater.autoDownload,
-      autoInstallOnAppQuit: autoUpdater.autoInstallOnAppQuit
+      updateCheckEnabled: CHECK_UPDATES && !isDev,
+      checkUpdatesEnvVar: CHECK_UPDATES,
+      autoDownload: CHECK_UPDATES ? (autoUpdater.autoDownload || false) : false,
+      autoInstallOnAppQuit: CHECK_UPDATES ? (autoUpdater.autoInstallOnAppQuit || false) : false,
+      version: app.getVersion()
     };
     log.info('[IPC AutoUpdater] Status requested:', status);
     return { success: true, data: status };

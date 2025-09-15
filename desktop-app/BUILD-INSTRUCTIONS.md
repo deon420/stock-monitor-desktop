@@ -10,7 +10,31 @@ I apologize for the previous failed attempts. Here's how to build the REAL deskt
 ## Requirements
 - Windows 10/11 machine
 - Node.js 18+ installed
+- **Visual Studio Build Tools** (see prerequisites below)
 - Git (optional)
+
+## Prerequisites for Native Modules
+
+This app uses native modules (better-sqlite3, keytar) that need compilation:
+
+### Required Build Tools:
+1. **Install Visual Studio Build Tools 2022** (or Visual Studio with C++ workload)
+   - Download from: https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022
+   - Select "C++ build tools" workload during installation
+   - Or run: `npm install --global windows-build-tools` (legacy method)
+
+2. **Python 3.x** (if not included with VS Build Tools)
+   - Required for node-gyp compilation
+
+### Native Module Compatibility:
+- **better-sqlite3 v12.2.0**: Limited Electron 38 prebuilt support - will compile from source
+- **keytar v7.9.0**: Deprecated, uses legacy prebuilds - will compile from source
+
+### Auto-Compilation Process:
+The build will automatically:
+1. Detect missing prebuilt binaries for Electron 38
+2. Compile better-sqlite3 and keytar from source using node-gyp
+3. This requires Visual Studio Build Tools (hence the prerequisite above)
 
 ## Build Steps
 
@@ -21,12 +45,19 @@ I apologize for the previous failed attempts. Here's how to build the REAL deskt
    npm install
    ```
 
-4. **Build the Windows executable:**
+4. **Rebuild native modules for Electron:** (Critical for Windows compatibility)
+   ```cmd
+   npm install --save-dev @electron/rebuild
+   npx electron-rebuild
+   ```
+   This step compiles better-sqlite3 and keytar specifically for Electron 38.
+
+5. **Build the Windows executable:**
    ```cmd
    npm run build-win
    ```
 
-5. **Find your desktop app:**
+6. **Find your desktop app:**
    - Installer: `dist/Stock Monitor Setup 1.0.0.exe`
    - Portable: `dist/win-unpacked/Stock Monitor.exe`
 
