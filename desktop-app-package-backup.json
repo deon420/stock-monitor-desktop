@@ -8,10 +8,8 @@
     "build": "electron-builder",
     "build-win": "electron-builder --win",
     "build-frontend": "node ../scripts/copy-frontend.mjs",
-    "build-all": "npm-run-all build-frontend build",
-    "postinstall": "electron-builder install-app-deps",
-    "test-electron": "electron --version",
-    "clean": "rimraf dist node_modules/.cache"
+    "build-all": "npm run build-frontend && npm run build",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "appId": "com.stockmonitor.app",

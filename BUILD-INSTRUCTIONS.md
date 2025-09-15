@@ -26,12 +26,19 @@ Install these tools in order before beginning:
    - Select "C++ build tools" workload during installation
    - **Alternative**: Full Visual Studio with C++ development workload
 
-3. **Inno Setup 6**
+3. **Python 3.x**
+   - **Required for**: Native module rebuilding and node-gyp operations
+   - Download from: https://www.python.org/downloads/
+   - **Important**: Use Python 3.8+ (recommended: Python 3.11)
+   - Verify installation: `python --version` (should show v3.x.x)
+   - **Note**: Required for rebuilding native modules like better-sqlite3 and keytar
+
+4. **Inno Setup 6**
    - **Required for**: Creating professional Windows installer
    - Download: https://jrsoftware.org/isdl.php
    - Install to default location (C:\Program Files (x86)\Inno Setup 6\)
 
-4. **Git** (recommended)
+5. **Git** (recommended)
    - Download: https://git-scm.com/download/win
    - Useful for version control and cloning repositories
 
@@ -119,6 +126,9 @@ node --version
 
 :: Check npm version
 npm --version
+
+:: Check Python version (should be 3.x.x)
+python --version
 
 :: Verify Visual Studio Build Tools
 where cl.exe
@@ -238,7 +248,8 @@ desktop-app/dist/
 │   ├── Stock Monitor.exe            # Main executable
 │   ├── resources/
 │   └── [electron runtime files]
-└── Stock Monitor Setup 1.0.0.exe   # Standard installer
+├── Stock Monitor Setup 1.0.0.exe   # Standard installer (NSIS)
+└── latest.yml                      # Auto-updater metadata
 ```
 
 ## Part 5: Create Custom Installer (Optional)
