@@ -11,7 +11,7 @@
     "build-all": "npm run build-frontend && npm run build",
     "postinstall": "electron-builder install-app-deps",
     "test-electron": "electron --version",
-    "clean": "rm -rf dist node_modules/.cache 2>/dev/null || rmdir /s /q dist node_modules\.cache 2>nul || echo 'Clean completed'"
+    "clean": "rm -rf dist node_modules/.cache 2>/dev/null || rmdir /s /q dist node_modules\\.cache 2>nul || echo 'Clean completed'"
   },
   "build": {
     "appId": "com.stockmonitor.app",
