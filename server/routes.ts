@@ -1654,7 +1654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Revoke beta access
-      const userAccess = await storage.setBetaAccess(userId, false, null);
+      const userAccess = await storage.setBetaAccess(userId, false, undefined);
 
       // Log admin action
       logInfo(`Admin action: Beta access revoked from user ${userId}`, {
