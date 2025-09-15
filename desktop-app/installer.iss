@@ -40,7 +40,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 WelcomeLabel2=Welcome! Stock Monitor was crafted by one person, trying to bring you the best monitoring experience possible. Thank you for trying it!%n%nTrack the two things that matter most: price drops AND stock availability. Perfect for deal hunters and resellers who need to know the moment items come back in stock!
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
 Source: "dist\win-unpacked\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
