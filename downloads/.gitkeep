@@ -1,0 +1,3 @@
+# Keep this directory in git
+# Actual installer files (.exe) should be ignored in .gitignore
+# Only documentation and structure files should be committed

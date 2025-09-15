@@ -146,3 +146,63 @@ cd desktop-app/dist/win-unpacked
 5. **Ready to use**: Add products, set price targets, get alerts
 
 **Installation Path**: `C:\Users\{username}\AppData\Local\Stock Monitor\`
+
+## 🚀 Hosting Installer Files
+
+### Web Download System
+
+The Replit deployment now includes a complete installer hosting system:
+
+- **Landing Page**: Users can download installers directly from the web interface
+- **Download Endpoint**: `/downloads/latest/windows` automatically serves the latest version
+- **Secure Downloads**: Files served with proper headers (`Content-Disposition: attachment`)
+- **Version Management**: Support for multiple installer versions
+
+### Uploading New Installers
+
+After building locally, upload your installer to enable web downloads:
+
+```bash
+# 1. Build locally (as shown above)
+npm install
+node scripts/build-all.mjs
+
+# 2. Your installer is ready at:
+# desktop-app/dist/Stock Monitor Setup 1.0.0.exe
+
+# 3. Upload to Replit downloads directory with proper naming:
+# Format: Stock-Monitor-Setup-{VERSION}.exe
+# Example: Stock-Monitor-Setup-1.0.1.exe
+```
+
+### Deployment Workflow
+
+1. **Local Development**: Build and test locally using instructions above
+2. **Upload Installer**: Copy `.exe` file to Replit's `/downloads` directory  
+3. **Update Version**: Ensure filename follows `Stock-Monitor-Setup-{VERSION}.exe` format
+4. **Test Download**: Verify download works from landing page
+5. **User Access**: Users can now download directly from your Replit URL
+
+### Download URLs
+
+- **Landing Page**: `https://your-replit-url.repl.co/` (Download button)
+- **Direct Latest**: `https://your-replit-url.repl.co/downloads/latest/windows`
+- **Specific Version**: `https://your-replit-url.repl.co/downloads/Stock-Monitor-Setup-1.0.1.exe`
+
+### File Structure
+
+```
+downloads/
+├── README.md                           # Documentation
+├── Stock-Monitor-Setup-1.0.0.exe      # Stable release  
+├── Stock-Monitor-Setup-1.0.1.exe      # Latest release
+├── v1.0.0/                            # Archived versions
+└── v1.0.1/                            # Archived versions
+```
+
+**Benefits for End Users**:
+- ✅ No command line tools required
+- ✅ Single-click download and install
+- ✅ Automatic updates via new uploads
+- ✅ Professional installer experience
+- ✅ Mobile-friendly download page

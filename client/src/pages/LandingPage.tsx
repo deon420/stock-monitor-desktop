@@ -446,7 +446,7 @@ export default function LandingPage() {
                   </div>
                   <h3 className="font-semibold text-lg">Windows 🪟</h3>
                   <p className="text-sm text-muted-foreground">
-                    True desktop app (Electron source code)
+                    Ready-to-install desktop application
                   </p>
                   <Button 
                     variant="outline" 
@@ -454,9 +454,9 @@ export default function LandingPage() {
                     asChild
                     data-testid="button-download-windows"
                   >
-                    <a href="/stock-monitor-electron-with-instructions.tar.gz" download="stock-monitor-electron-with-instructions.tar.gz" className="flex items-center justify-center gap-2">
+                    <a href="/downloads/latest/windows" className="flex items-center justify-center gap-2">
                       <Download className="h-4 w-4" />
-                      Download Source Code
+                      Download Installer
                     </a>
                   </Button>
                 </CardContent>
