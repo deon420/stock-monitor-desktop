@@ -19,10 +19,21 @@ import {
   loginSchema,
   refreshTokenRequestSchema,
   changePasswordSchema,
+  updateProfileSchema,
+  startSubscriptionSchema,
+  switchPlanSchema,
+  cancelSubscriptionSchema,
+  updateBillingSchema,
   type SignupRequest,
   type LoginRequest,
   type AuthResponse,
-  type UserProfile
+  type UserProfile,
+  type FullUserProfile,
+  type UpdateProfileRequest,
+  type StartSubscriptionRequest,
+  type SwitchPlanRequest,
+  type CancelSubscriptionRequest,
+  type UpdateBillingRequest
 } from "@shared/schema";
 import { authService, requireAuth, requireAdmin, authorize, optionalAuth } from "./auth";
 import { logger, logError, logInfo, logWarn, getCombinedLogs } from "./logger";
@@ -646,6 +657,237 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       logger.error('Change password error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // ======================
+  // PROFILE & SUBSCRIPTION API ROUTES
+  // ======================
+
+  // Get complete user profile with subscription info
+  app.get("/api/profile", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const profile = await storage.getUserProfile(user.id);
+      
+      if (!profile) {
+        return res.status(404).json({ error: 'Profile not found' });
+      }
+
+      res.json(profile);
+      
+    } catch (error) {
+      logger.error('Get profile error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Update user profile (name)
+  app.patch("/api/profile", requireAuth, async (req, res) => {
+    try {
+      const validationResult = updateProfileSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.error.format()
+        });
+      }
+
+      const user = (req as any).user;
+      const updatedUser = await storage.updateUserProfile(user.id, validationResult.data);
+
+      res.json({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+      });
+
+    } catch (error) {
+      logger.error('Update profile error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Get available subscription plans
+  app.get("/api/subscription/plans", requireAuth, async (req, res) => {
+    try {
+      const plans = await storage.listActivePlans();
+      res.json(plans);
+      
+    } catch (error) {
+      logger.error('Get plans error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Get user's current subscription
+  app.get("/api/subscription", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const subscription = await storage.getActiveSubscription(user.id);
+
+      if (!subscription) {
+        return res.status(404).json({ error: 'No active subscription found' });
+      }
+
+      res.json(subscription);
+      
+    } catch (error) {
+      logger.error('Get subscription error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Start a new subscription
+  app.post("/api/subscription/start", requireAuth, async (req, res) => {
+    try {
+      const validationResult = startSubscriptionSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.error.format()
+        });
+      }
+
+      const user = (req as any).user;
+      const subscription = await storage.startSubscription(user.id, validationResult.data);
+
+      res.json(subscription);
+      logger.info(`Subscription started for user: ${user.id}`);
+
+    } catch (error) {
+      logger.error('Start subscription error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Switch subscription plan
+  app.post("/api/subscription/switch", requireAuth, async (req, res) => {
+    try {
+      const validationResult = switchPlanSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.error.format()
+        });
+      }
+
+      const user = (req as any).user;
+      const subscription = await storage.switchSubscription(user.id, validationResult.data);
+
+      res.json(subscription);
+      logger.info(`Subscription switched for user: ${user.id}`);
+
+    } catch (error) {
+      logger.error('Switch subscription error:', error);
+      if (error.message === 'No active subscription found') {
+        return res.status(404).json({ error: error.message });
+      }
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Cancel subscription
+  app.post("/api/subscription/cancel", requireAuth, async (req, res) => {
+    try {
+      const validationResult = cancelSubscriptionSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.error.format()
+        });
+      }
+
+      const user = (req as any).user;
+      const subscription = await storage.cancelSubscription(user.id, validationResult.data);
+
+      res.json(subscription);
+      logger.info(`Subscription canceled for user: ${user.id}`);
+
+    } catch (error) {
+      logger.error('Cancel subscription error:', error);
+      if (error.message === 'No active subscription found') {
+        return res.status(404).json({ error: error.message });
+      }
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Get billing information
+  app.get("/api/billing", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const billingInfo = await storage.getBillingInfo(user.id);
+
+      if (!billingInfo) {
+        return res.status(404).json({ error: 'No billing information found' });
+      }
+
+      // Don't return sensitive info like Stripe customer ID
+      res.json({
+        billingEmail: billingInfo.billingEmail,
+        billingAddress: billingInfo.billingAddress,
+      });
+      
+    } catch (error) {
+      logger.error('Get billing error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Update billing information
+  app.patch("/api/billing", requireAuth, async (req, res) => {
+    try {
+      const validationResult = updateBillingSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.error.format()
+        });
+      }
+
+      const user = (req as any).user;
+      const billingInfo = await storage.updateBillingInfo(user.id, validationResult.data);
+
+      // Don't return sensitive info like Stripe customer ID
+      res.json({
+        billingEmail: billingInfo.billingEmail,
+        billingAddress: billingInfo.billingAddress,
+      });
+
+    } catch (error) {
+      logger.error('Update billing error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Stripe integration stub endpoints (for future implementation)
+  app.post("/api/stripe/checkout-session", requireAuth, async (req, res) => {
+    try {
+      // TODO: Implement Stripe checkout session creation
+      res.json({ 
+        message: 'Stripe checkout session endpoint - not implemented yet',
+        checkoutUrl: 'https://checkout.stripe.com/stub' 
+      });
+      
+    } catch (error) {
+      logger.error('Stripe checkout session error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.post("/api/stripe/customer-portal", requireAuth, async (req, res) => {
+    try {
+      // TODO: Implement Stripe customer portal session creation
+      res.json({ 
+        message: 'Stripe customer portal endpoint - not implemented yet',
+        portalUrl: 'https://billing.stripe.com/stub' 
+      });
+      
+    } catch (error) {
+      logger.error('Stripe customer portal error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });

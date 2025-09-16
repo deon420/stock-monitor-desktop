@@ -3,6 +3,15 @@ import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, index, uniq
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Plan tier enum for subscription management
+export const PlanTier = {
+  BETA: 'beta',
+  FREE: 'free', 
+  PRO: 'pro'
+} as const;
+
+export type PlanTier = typeof PlanTier[keyof typeof PlanTier];
+
 // Session storage table - required for Replit Auth
 export const sessions = pgTable(
   "sessions",
@@ -289,34 +298,34 @@ export const insertRefreshTokenSchema = createInsertSchema(refreshTokens).omit({
 
 // Type exports
 export type User = typeof users.$inferSelect;
-export type UpsertUser = z.infer<typeof upsertUserSchema>;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type UpdateUserStripe = z.infer<typeof updateUserStripeSchema>;
+export type UpsertUser = z.infer<typeof upsertUserSchema & z.ZodType>;
+export type InsertUser = z.infer<typeof insertUserSchema & z.ZodType>;
+export type UpdateUserStripe = z.infer<typeof updateUserStripeSchema & z.ZodType>;
 
 export type Settings = typeof settings.$inferSelect;
-export type InsertSettings = z.infer<typeof insertSettingsSchema>;
-export type UpdateSettings = z.infer<typeof updateSettingsSchema>;
+export type InsertSettings = z.infer<typeof insertSettingsSchema & z.ZodType>;
+export type UpdateSettings = z.infer<typeof updateSettingsSchema & z.ZodType>;
 
 export type UserStatus = typeof userStatus.$inferSelect;
-export type InsertUserStatus = z.infer<typeof insertUserStatusSchema>;
+export type InsertUserStatus = z.infer<typeof insertUserStatusSchema & z.ZodType>;
 
 export type AdminUser = typeof adminUsers.$inferSelect;
-export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema & z.ZodType>;
 
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
-export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema & z.ZodType>;
 
 export type Subscription = typeof subscriptions.$inferSelect;
-export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema & z.ZodType>;
 
 export type BillingInfo = typeof billingInfo.$inferSelect;
-export type InsertBillingInfo = z.infer<typeof insertBillingInfoSchema>;
+export type InsertBillingInfo = z.infer<typeof insertBillingInfoSchema & z.ZodType>;
 
 export type UserAccess = typeof userAccess.$inferSelect;
-export type InsertUserAccess = z.infer<typeof insertUserAccessSchema>;
+export type InsertUserAccess = z.infer<typeof insertUserAccessSchema & z.ZodType>;
 
 export type RefreshToken = typeof refreshTokens.$inferSelect;
-export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
+export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema & z.ZodType>;
 
 // Authentication request/response schemas
 export const signupSchema = z.object({
@@ -440,3 +449,61 @@ export type RefreshTokenRequest = z.infer<typeof refreshTokenRequestSchema>;
 export type ChangePasswordRequest = z.infer<typeof changePasswordSchema>;
 export type AuthResponse = z.infer<typeof authResponseSchema>;
 export type UserProfile = z.infer<typeof userProfileSchema>;
+
+// Profile and subscription management schemas
+export const subscriptionSummarySchema = z.object({
+  planId: z.string(),
+  planName: z.string(),
+  tier: z.enum(['beta', 'free', 'pro']),
+  status: z.string(), // active, canceled, past_due, etc.
+  currentPeriodEnd: z.date().nullable(),
+  canceledAt: z.date().nullable(),
+  stripeSubscriptionId: z.string().nullable(),
+});
+
+export const updateProfileSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').optional(),
+  lastName: z.string().min(1, 'Last name is required').optional(),
+});
+
+export const startSubscriptionSchema = z.object({
+  planId: z.string().min(1, 'Plan ID is required'),
+  stripePriceId: z.string().optional(),
+});
+
+export const switchPlanSchema = z.object({
+  planId: z.string().min(1, 'Plan ID is required'),
+  stripePriceId: z.string().optional(),
+});
+
+export const cancelSubscriptionSchema = z.object({
+  reason: z.string().optional(),
+  immediate: z.boolean().default(false),
+});
+
+export const updateBillingSchema = z.object({
+  billingEmail: z.string().email('Invalid email address'),
+  billingAddress: z.object({
+    line1: z.string().min(1, 'Address line 1 is required'),
+    line2: z.string().optional(),
+    city: z.string().min(1, 'City is required'),
+    state: z.string().min(1, 'State is required'),
+    postalCode: z.string().min(1, 'Postal code is required'),
+    country: z.string().min(1, 'Country is required'),
+  }).optional(),
+});
+
+// Extended user profile schema with subscription info
+export const fullUserProfileSchema = userProfileSchema.extend({
+  subscription: subscriptionSummarySchema.nullable(),
+  billingEmail: z.string().nullable(),
+});
+
+// Type exports for profile and subscription management
+export type SubscriptionSummary = z.infer<typeof subscriptionSummarySchema>;
+export type UpdateProfileRequest = z.infer<typeof updateProfileSchema>;
+export type StartSubscriptionRequest = z.infer<typeof startSubscriptionSchema>;
+export type SwitchPlanRequest = z.infer<typeof switchPlanSchema>;
+export type CancelSubscriptionRequest = z.infer<typeof cancelSubscriptionSchema>;
+export type UpdateBillingRequest = z.infer<typeof updateBillingSchema>;
+export type FullUserProfile = z.infer<typeof fullUserProfileSchema>;
