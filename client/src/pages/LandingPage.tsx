@@ -1,9 +1,10 @@
-import { useState, Suspense, lazy } from "react";
+import { useState, Suspense, lazy, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useDesktopAuth } from "@/contexts/DesktopAuthContext";
 // Code split modal components to reduce bundle size
 const AuthChoiceModal = lazy(() => import("@/components/AuthChoiceModal"));
 const DemoModal = lazy(() => import("@/components/DemoModal"));
@@ -28,7 +29,9 @@ import {
   Globe,
   Headphones,
   UserPlus,
-  LogIn
+  LogIn,
+  User,
+  Settings
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -37,6 +40,34 @@ export default function LandingPage() {
   const [demoModalOpen, setDemoModalOpen] = useState(false);
   const isMobile = useIsMobile();
   const [, setLocation] = useLocation();
+  const { user, isAuthenticated, isLoading } = useDesktopAuth();
+  
+  // Check if we're in desktop environment
+  const isDesktopApp = typeof window !== 'undefined' && 'electronAPI' in window;
+  
+  // For web users, check authentication status on mount
+  useEffect(() => {
+    if (!isDesktopApp && !isAuthenticated && !isLoading) {
+      // Check if user is authenticated via cookies
+      fetch('/api/me', {
+        credentials: 'include' // Include cookies
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error('Not authenticated');
+      })
+      .then(userProfile => {
+        console.log('[LandingPage] Found authenticated user via cookies:', userProfile.email);
+        // Note: We would need to update DesktopAuthContext to handle this case
+        // For now, we'll just log it
+      })
+      .catch(() => {
+        // User not authenticated, which is normal for landing page
+      });
+    }
+  }, [isDesktopApp, isAuthenticated, isLoading]);
 
   const openSignupModal = () => {
     setAuthModalMode('signup');
@@ -85,35 +116,53 @@ export default function LandingPage() {
               </a>
             </nav>
             <ThemeToggle />
-            {!isMobile && (
+            {/* Show user profile if authenticated, otherwise show auth buttons */}
+            {isAuthenticated && user ? (
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setLocation('/profile')}
+                  className="flex items-center space-x-2"
+                  data-testid="button-user-profile"
+                >
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">{user.firstName || user.email}</span>
+                </Button>
+              </div>
+            ) : (
               <>
-                <Button 
-                  size="sm" 
-                  onClick={openLoginModal}
-                  data-testid="button-header-login"
-                >
-                  <LogIn className="mr-2 h-4 w-4" />
-                  Sign In
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={openSignupModal}
-                  data-testid="button-header-signup"
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Sign Up
-                </Button>
+                {!isMobile && (
+                  <>
+                    <Button 
+                      size="sm" 
+                      onClick={openLoginModal}
+                      data-testid="button-header-login"
+                    >
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Sign In
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={openSignupModal}
+                      data-testid="button-header-signup"
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Sign Up
+                    </Button>
+                  </>
+                )}
+                {isMobile && (
+                  <Button 
+                    size="sm" 
+                    onClick={openAuthChoiceModal}
+                    data-testid="button-header-auth-mobile"
+                  >
+                    <UserPlus className="mr-1 h-4 w-4" />
+                    Join
+                  </Button>
+                )}
               </>
-            )}
-            {isMobile && (
-              <Button 
-                size="sm" 
-                onClick={openAuthChoiceModal}
-                data-testid="button-header-auth-mobile"
-              >
-                <UserPlus className="mr-1 h-4 w-4" />
-                Join
-              </Button>
             )}
           </div>
         </div>

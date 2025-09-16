@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { WebSignupForm } from "./WebSignupForm";
 import { WebLoginForm } from "./WebLoginForm";
 import type { AuthResponse } from "@shared/schema";
-import { Monitor, UserPlus, LogIn, Zap, ArrowLeft } from "lucide-react";
+import { Monitor, UserPlus, LogIn, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
+import { useDesktopAuth } from "@/contexts/DesktopAuthContext";
 
 type AuthMode = 'choice' | 'signup' | 'login';
 
@@ -20,8 +21,9 @@ interface AuthChoiceModalProps {
 export default function AuthChoiceModal({ open, onOpenChange, defaultMode = 'choice' }: AuthChoiceModalProps) {
   const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [, setLocation] = useLocation();
+  const { checkAuthStatus } = useDesktopAuth();
 
-  const handleAuthSuccess = (authResponse: AuthResponse) => {
+  const handleAuthSuccess = async (authResponse: AuthResponse) => {
     console.log("[AuthChoice] Authentication successful:", authResponse.user.email);
     
     // Close modal
@@ -30,15 +32,14 @@ export default function AuthChoiceModal({ open, onOpenChange, defaultMode = 'cho
     // Reset mode for next time
     setMode('choice');
     
-    // Redirect to dashboard
-    setLocation('/dashboard');
+    // Refresh authentication context to detect the new login state
+    // This is especially important for web users with cookie-based auth
+    await checkAuthStatus();
+    
+    // Stay on current page - user is now logged in and UI will update automatically
+    // Toast notification is handled by individual login/signup forms
   };
 
-  const handleReplitAuth = () => {
-    // Close modal and redirect to Replit Auth
-    onOpenChange(false);
-    window.location.href = "/api/login";
-  };
 
   const renderContent = () => {
     switch (mode) {
@@ -55,7 +56,6 @@ export default function AuthChoiceModal({ open, onOpenChange, defaultMode = 'cho
           <WebLoginForm
             onLoginSuccess={handleAuthSuccess}
             onSwitchToSignup={() => setMode('signup')}
-            onSwitchToReplitAuth={handleReplitAuth}
           />
         );
       
@@ -80,44 +80,7 @@ export default function AuthChoiceModal({ open, onOpenChange, defaultMode = 'cho
 
             {/* Auth Options */}
             <div className="space-y-4">
-              {/* Replit Auth Option */}
-              <Card className="hover-elevate cursor-pointer transition-all" data-testid="card-replit-auth-option">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-primary" />
-                      Continue with Replit
-                    </CardTitle>
-                    <Badge variant="secondary">Recommended</Badge>
-                  </div>
-                  <CardDescription>
-                    Quick and secure sign-in with your Replit account
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <Button 
-                    className="w-full" 
-                    onClick={handleReplitAuth}
-                    data-testid="button-choose-replit-auth"
-                  >
-                    <Zap className="mr-2 h-4 w-4" />
-                    Sign in with Replit
-                  </Button>
-                  <div className="mt-3 text-xs text-muted-foreground">
-                    • No password required • Instant access • Secure OAuth
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Email/Password Options */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or</span>
-                </div>
-              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Signup Option */}

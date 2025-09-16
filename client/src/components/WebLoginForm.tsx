@@ -15,10 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 interface WebLoginFormProps {
   onLoginSuccess?: (authResponse: AuthResponse) => void;
   onSwitchToSignup?: () => void;
-  onSwitchToReplitAuth?: () => void;
 }
 
-export function WebLoginForm({ onLoginSuccess, onSwitchToSignup, onSwitchToReplitAuth }: WebLoginFormProps) {
+export function WebLoginForm({ onLoginSuccess, onSwitchToSignup }: WebLoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -198,26 +197,6 @@ export function WebLoginForm({ onLoginSuccess, onSwitchToSignup, onSwitchToRepli
           </form>
         </Form>
 
-        <div className="mt-6 space-y-4">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={onSwitchToReplitAuth}
-            disabled={isLoading}
-            data-testid="button-switch-to-replit-auth"
-          >
-            Continue with Replit
-          </Button>
-        </div>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">

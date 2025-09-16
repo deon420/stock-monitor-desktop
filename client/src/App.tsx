@@ -15,6 +15,7 @@ import { useEffect, Suspense, lazy } from "react";
 
 // Code split large components using React.lazy for better bundle optimization
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
+const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const Dashboard = lazy(() => import("@/components/Dashboard"));
 const NotificationHistoryPage = lazy(() => import("@/pages/NotificationHistoryPage"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
@@ -63,6 +64,7 @@ function AuthenticatedRouter() {
       }>
         <Switch>
           <Route path="/" component={LandingPage} />
+          <Route path="/profile" component={ProfilePage} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/notifications" component={NotificationHistoryPage} />
           <Route path="/admin" component={AdminDashboard} />

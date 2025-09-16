@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { setDesktopApiRequest } from "@/lib/queryClient";
 import type { AuthResponse, UserProfile } from "@shared/schema";
+import type { ElectronAPI } from "@/types/electron";
 
 // Type guard for desktop environment - defined at module level
 const isElectronApp = (): boolean => {
@@ -80,7 +81,7 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
       }
 
       try {
-        const electronAPI = window.electronAPI;
+        const electronAPI = window.electronAPI as ElectronAPI | undefined;
         if (electronAPI?.keychainHelper?.isAvailable) {
           const available = await electronAPI.keychainHelper.isAvailable();
           setIsKeychainAvailable(available);
@@ -108,7 +109,7 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     }
 
     try {
-      const electronAPI = (window as any).electronAPI;
+      const electronAPI = window.electronAPI as ElectronAPI | undefined;
       if (electronAPI?.keychainHelper?.storeAuthSafe) {
         // Use secure keychain storage
         const result = await electronAPI.keychainHelper.storeAuthSafe(
@@ -185,7 +186,7 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     // Clear keychain auth data
     if (currentUserId) {
       try {
-        const electronAPI = window.electronAPI;
+        const electronAPI = window.electronAPI as ElectronAPI | undefined;
         if (electronAPI?.keychainHelper?.clearAuthSafe) {
           await electronAPI.keychainHelper.clearAuthSafe(currentUserId);
           console.log('[DesktopAuth] Keychain auth data cleared');
@@ -228,10 +229,10 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
       
       try {
         // Get refresh token from keychain
-        const electronAPI = window.electronAPI;
+        const electronAPI = window.electronAPI as ElectronAPI | undefined;
         if (electronAPI?.keychainHelper?.getAuthSafe) {
           const authData = await electronAPI.keychainHelper.getAuthSafe(currentUserId);
-          storedRefreshToken = authData?.refreshToken;
+          storedRefreshToken = authData?.refreshToken ?? null;
         }
         
         if (!storedRefreshToken) {
@@ -241,7 +242,7 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
 
         console.log("[DesktopAuth] Attempting token refresh with keychain token");
         
-        let response: Response;
+        let response: Response | any;
         
         if (electronAPI?.apiRequest) {
           response = await electronAPI.apiRequest("/api/auth/refresh", {
@@ -331,6 +332,36 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
 
   const checkAuthStatus = useCallback(async () => {
     if (!isDesktopApp) {
+      // For web users, check cookie-based authentication
+      console.log("[DesktopAuth] Checking web authentication status via cookies");
+      try {
+        const response = await fetch("/api/me", {
+          method: "GET",
+          credentials: "include", // Include cookies for web authentication
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const userProfile = await response.json() as UserProfile;
+          setUser({
+            id: userProfile.id,
+            email: userProfile.email,
+            firstName: userProfile.firstName,
+            lastName: userProfile.lastName,
+            profileImageUrl: userProfile.profileImageUrl,
+            isAdmin: userProfile.isAdmin,
+          });
+          console.log("[DesktopAuth] Web authentication detected, user logged in");
+        } else {
+          console.log("[DesktopAuth] No valid web authentication found");
+          setUser(null);
+        }
+      } catch (error) {
+        console.warn("[DesktopAuth] Error checking web authentication:", error);
+        setUser(null);
+      }
       setIsLoading(false);
       return;
     }
@@ -488,7 +519,15 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
   // Provide API request function with automatic token handling from keychain
   const apiRequest = useCallback(async (url: string, options: RequestInit = {}) => {
     if (!isDesktopApp) {
-      return fetch(url, options);
+      // For web users, ensure credentials are included for cookie-based auth
+      return fetch(url, {
+        ...options,
+        credentials: "include", // Always include cookies for web authentication
+        headers: {
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+      });
     }
 
     // Use electronAPI for desktop requests
@@ -623,12 +662,15 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
       warningTimer = setTimeout(() => {
         console.log('[DesktopAuthContext] Inactivity warning - auto logout in 5 minutes');
         // Show toast notification for warning
-        if (typeof window !== 'undefined' && window.electronAPI?.showNotification) {
-          window.electronAPI.showNotification({
-            title: 'Auto-logout Warning',
-            body: 'You will be automatically logged out in 5 minutes due to inactivity.',
-            type: 'warning'
-          });
+        if (typeof window !== 'undefined') {
+          const electronAPI = window.electronAPI as ElectronAPI | undefined;
+          if (electronAPI?.showNotification) {
+            electronAPI.showNotification({
+              title: 'Auto-logout Warning',
+              body: 'You will be automatically logged out in 5 minutes due to inactivity.',
+              type: 'warning'
+            });
+          }
         }
       }, WARNING_TIMEOUT);
 
