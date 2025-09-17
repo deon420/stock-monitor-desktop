@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { loginSchema } from "@shared/schema";
 import type { LoginRequest, AuthResponse } from "@shared/schema";
-import { Loader2, Shield, Lock, User, KeyRound, AlertCircle } from "lucide-react";
+import { Loader2, Shield, Lock, User, KeyRound, AlertCircle, Monitor, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useDesktopAuth } from "@/contexts/DesktopAuthContext";
 
@@ -23,6 +23,11 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rememberEmail, setRememberEmail] = useState(true);
+  const [electronAPIStatus, setElectronAPIStatus] = useState<{
+    available: boolean;
+    checking: boolean;
+    error?: string;
+  }>({ available: false, checking: true });
   const [keychainStatus, setKeychainStatus] = useState<{
     available: boolean;
     checking: boolean;
@@ -30,9 +35,6 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
   }>({ available: false, checking: true });
   const { toast } = useToast();
   const { login, isKeychainAvailable } = useDesktopAuth();
-  
-  // Check if we're in desktop environment
-  const isDesktopApp = typeof window !== 'undefined' && 'electronAPI' in window;
 
   const form = useForm<LoginRequest>({
     resolver: zodResolver(loginSchema),
@@ -43,18 +45,37 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
     },
   });
 
-  // Check keychain status on mount
+  // Check electronAPI and keychain status on mount
   useEffect(() => {
-    const checkKeychainAndLoadEmail = async () => {
-      if (!isDesktopApp) {
-        setKeychainStatus({ available: false, checking: false });
+    const checkElectronAPIAndKeychain = async () => {
+      // First, check if we're in a browser environment
+      if (typeof window === 'undefined') {
+        setElectronAPIStatus({ available: false, checking: false, error: 'Server environment' });
+        setKeychainStatus({ available: false, checking: false, error: 'Server environment' });
         return;
       }
 
+      // Check for electronAPI availability with a small delay to handle timing issues
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const electronAPI = (window as any).electronAPI;
+      const isElectronAvailable = !!electronAPI;
+      
+      setElectronAPIStatus({ 
+        available: isElectronAvailable, 
+        checking: false,
+        error: isElectronAvailable ? undefined : 'Running in web mode'
+      });
+
+      if (!isElectronAvailable) {
+        setKeychainStatus({ available: false, checking: false, error: 'Web mode - no keychain' });
+        return;
+      }
+
+      // ElectronAPI is available, now check keychain
       try {
         setKeychainStatus({ available: false, checking: true });
         
-        const electronAPI = (window as any).electronAPI;
         if (electronAPI?.keychainHelper?.isAvailable) {
           const available = await electronAPI.keychainHelper.isAvailable();
           setKeychainStatus({ available, checking: false });
@@ -88,8 +109,8 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
       }
     };
 
-    checkKeychainAndLoadEmail();
-  }, [isDesktopApp, form]);
+    checkElectronAPIAndKeychain();
+  }, [form]);
 
   const onSubmit = async (data: LoginRequest) => {
     setIsLoading(true);
@@ -100,25 +121,25 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
       
       let response: Response;
       
-      if (isDesktopApp && (window as any).electronAPI?.apiRequest) {
+      if (electronAPIStatus.available && (window as any).electronAPI?.apiRequest) {
         // Use desktop API for authenticated requests (bypasses CORS)
         console.log("[DesktopLogin] Using desktop API for login");
         response = await (window as any).electronAPI.apiRequest("/api/auth/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Auth-Mode": "tokens", // Request tokens instead of cookies for desktop
+            "X-Auth-Mode": "tokens", // Request tokens for desktop
           },
           body: JSON.stringify(data),
         });
       } else {
         // Fallback to regular fetch for web clients
-        console.log("[DesktopLogin] Using regular fetch for login");
+        console.log("[DesktopLogin] Using regular fetch for web login");
         response = await fetch("/api/auth/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Auth-Mode": "tokens", // Request tokens instead of cookies for desktop
+            // No X-Auth-Mode header for web - use default cookie-based auth
           },
           body: JSON.stringify(data),
         });
@@ -135,8 +156,8 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
       // Use secure keychain-based login from context
       await login(authResponse, data.rememberMe);
 
-      // Store email preference in keychain if remember email is enabled
-      if (rememberEmail && isDesktopApp) {
+      // Store email preference in keychain if remember email is enabled and we're in desktop mode
+      if (rememberEmail && electronAPIStatus.available) {
         try {
           const electronAPI = (window as any).electronAPI;
           if (electronAPI?.keychain?.preferences?.storeEmail) {
@@ -147,7 +168,7 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
           console.warn('[DesktopLogin] Failed to store email in keychain - email will not be persisted:', emailStoreError);
           // NO INSECURE FALLBACKS - if keychain fails, don't store email
         }
-      } else if (!rememberEmail && isDesktopApp) {
+      } else if (!rememberEmail && electronAPIStatus.available) {
         try {
           const electronAPI = (window as any).electronAPI;
           if (electronAPI?.keychain?.preferences?.clearEmail) {
@@ -193,11 +214,7 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
     }
   };
 
-  // Don't render if not in desktop environment
-  if (typeof window === 'undefined' || !('electronAPI' in window)) {
-    return null;
-  }
-
+  // Always render the login form, but show appropriate status messages
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md shadow-lg" data-testid="card-desktop-login">
@@ -209,26 +226,55 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
           </div>
           <CardTitle className="text-2xl font-bold">Stock Monitor</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Sign in to your secure desktop app
+            {electronAPIStatus.checking ? (
+              "Initializing secure login..."
+            ) : electronAPIStatus.available ? (
+              "Sign in to your secure desktop app"
+            ) : (
+              "Sign in to Stock Monitor (Web Mode)"
+            )}
           </CardDescription>
           
-          {/* Keychain Security Status */}
-          <div className="flex items-center justify-center mt-2">
-            {keychainStatus.checking ? (
+          {/* App Mode and Security Status */}
+          <div className="flex flex-col items-center justify-center mt-2 space-y-2">
+            {/* App Mode Status */}
+            {electronAPIStatus.checking ? (
               <Badge variant="outline" className="text-xs">
                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                Checking Security...
+                Detecting Mode...
               </Badge>
-            ) : keychainStatus.available ? (
-              <Badge variant="default" className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                <KeyRound className="h-3 w-3 mr-1" />
-                OS Keychain Available
+            ) : electronAPIStatus.available ? (
+              <Badge variant="default" className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                <Monitor className="h-3 w-3 mr-1" />
+                Desktop App Mode
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-xs text-orange-600">
-                <AlertCircle className="h-3 w-3 mr-1" />
-                Fallback Storage
+              <Badge variant="outline" className="text-xs">
+                <Globe className="h-3 w-3 mr-1" />
+                Web Mode
               </Badge>
+            )}
+            
+            {/* Keychain Status (only show if in desktop mode) */}
+            {electronAPIStatus.available && (
+              <div>
+                {keychainStatus.checking ? (
+                  <Badge variant="outline" className="text-xs">
+                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    Checking Security...
+                  </Badge>
+                ) : keychainStatus.available ? (
+                  <Badge variant="default" className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                    <KeyRound className="h-3 w-3 mr-1" />
+                    OS Keychain Available
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs text-orange-600">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Keychain Unavailable
+                  </Badge>
+                )}
+              </div>
             )}
           </div>
         </CardHeader>
@@ -313,21 +359,25 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
                   )}
                 />
 
-                <div className="flex flex-row items-center space-x-2">
-                  <Checkbox
-                    id="rememberEmail"
-                    checked={rememberEmail}
-                    onCheckedChange={(checked) => setRememberEmail(checked === true)}
-                    disabled={isLoading}
-                    data-testid="checkbox-remember-email"
-                  />
-                  <Label
-                    htmlFor="rememberEmail"
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    Remember my email address
-                  </Label>
-                </div>
+                {/* Only show remember email option if we're in desktop mode */}
+                {electronAPIStatus.available && (
+                  <div className="flex flex-row items-center space-x-2">
+                    <Checkbox
+                      id="rememberEmail"
+                      checked={rememberEmail}
+                      onCheckedChange={(checked) => setRememberEmail(checked === true)}
+                      disabled={isLoading || !keychainStatus.available}
+                      data-testid="checkbox-remember-email"
+                    />
+                    <Label
+                      htmlFor="rememberEmail"
+                      className={`text-sm font-normal cursor-pointer ${!keychainStatus.available ? 'text-muted-foreground' : ''}`}
+                    >
+                      Remember my email address
+                      {!keychainStatus.available && " (requires keychain)"}
+                    </Label>
+                  </div>
+                )}
               </div>
 
               <Button 
@@ -357,7 +407,16 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
                 <Shield className="h-3 w-3" />
                 Your data is encrypted and secure
               </p>
-              <p>Desktop app version • Enterprise security</p>
+              {electronAPIStatus.available ? (
+                <p>Desktop app version • Enterprise security</p>
+              ) : (
+                <p>Web version • Standard security</p>
+              )}
+              {!electronAPIStatus.available && (
+                <p className="text-orange-600 dark:text-orange-400">
+                  Some features may be limited in web mode
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
