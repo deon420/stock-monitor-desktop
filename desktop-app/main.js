@@ -3,8 +3,22 @@ const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
 const crypto = require('crypto');
-const { DesktopDatabase } = require('./desktop-database');
-const { KeychainService } = require('./keychain-service');
+// Add global crash handlers immediately
+process.on('uncaughtException', (err) => {
+  try {
+    require('electron-log').error('[uncaughtException]', err);
+  } catch {}
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (err) => {
+  try {
+    require('electron-log').error('[unhandledRejection]', err);
+  } catch {}
+});
+
+// Defer native module imports - will be loaded in app.whenReady()
+let DesktopDatabase, KeychainService;
 const { autoUpdater } = require('electron-updater');
 
 // Enable crash reporting and logging
@@ -651,16 +665,39 @@ async function initializeApp() {
   try {
     // Initialize debug logging first
     initializeDebugLogging();
+    log.info('App is ready, initializing...');
     
-    log.info('Initializing desktop database...');
-    database = new DesktopDatabase();
-    await database.initialize();
-    log.info('Database initialized successfully');
-
-    log.info('Initializing keychain service...');
-    keychain = new KeychainService();
-    await keychain._checkAvailability();
-    log.info('Keychain service initialized successfully');
+    // Safely load native modules
+    try {
+      ({ DesktopDatabase } = require('./desktop-database'));
+      log.info('Initializing desktop database...');
+      database = new DesktopDatabase();
+      await database.initialize();
+      log.info('Database initialized successfully');
+    } catch (error) {
+      log.error('Failed to initialize database:', error);
+      writeDebugLog(`Database init failed: ${error.message}`);
+      // Use fallback stub database
+      database = { 
+        close: () => {},
+        initialize: async () => {},
+        // Add other minimal methods as needed
+      };
+    }
+    
+    try {
+      ({ KeychainService } = require('./keychain-service'));
+      log.info('Initializing keychain service...');
+      keychain = new KeychainService();
+      await keychain._checkAvailability();
+      log.info('Keychain service initialized successfully');
+    } catch (error) {
+      log.error('Failed to initialize keychain:', error);
+      writeDebugLog(`Keychain init failed: ${error.message}`);
+      // Use fallback memory storage
+      const { SecureMemoryStorage } = require('./secure-memory-storage');
+      keychain = new SecureMemoryStorage();
+    }
 
     log.info('Initializing secure memory storage...');
     secureMemory = new SecureMemoryStorage();
@@ -676,6 +713,7 @@ async function initializeApp() {
     }, 5000); // 5 second delay
   } catch (error) {
     log.error('Error initializing app:', error);
+    writeDebugLog(`App initialization failed: ${error.message}`);
     // Show error dialog and still create window
     createWindow();
   }
