@@ -135,6 +135,36 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     
     // Set user state
     setUser(authResponse.user);
+    
+    // Fetch entitlements for subscription tier and limits
+    try {
+      console.log("[DesktopAuth] Fetching user entitlements...");
+      const electronAPI = window.electronAPI as ElectronAPI | undefined;
+      if (electronAPI?.apiRequest) {
+        const entitlementsResponse = await electronAPI.apiRequest('/api/access/entitlements', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${authResponse.accessToken}`,
+            'x-auth-mode': 'tokens'
+          }
+        });
+        
+        if (entitlementsResponse.ok) {
+          const entitlementsData = await entitlementsResponse.json();
+          console.log("[DesktopAuth] Entitlements fetched successfully:", entitlementsData);
+          
+          // Store entitlements in memory for session use
+          // TODO: Add proper settings storage to desktop database interface
+          console.log("[DesktopAuth] Entitlements available for session:", entitlementsData);
+        } else {
+          console.warn("[DesktopAuth] Failed to fetch entitlements:", entitlementsResponse.status);
+        }
+      }
+    } catch (error) {
+      console.error("[DesktopAuth] Error fetching entitlements:", error);
+      // Don't fail login if entitlements fetch fails
+    }
+    
     setIsLoading(false);
   }, [isDesktopApp]);
 

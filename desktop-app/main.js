@@ -660,6 +660,54 @@ function createWindow() {
   }
 }
 
+// Perform server health check to verify connectivity
+async function performHealthCheck() {
+  try {
+    log.info('[Health Check] Starting server connectivity check...');
+    
+    const serverUrl = process.env.SERVER_URL || process.env.AUTH_SERVER_URL || 'https://21d62d1f-846d-480e-b468-f2b8a9f626c3-00-5s4tkfssk1gu.riker.replit.dev';
+    const healthUrl = `${serverUrl}/api/health`;
+    
+    log.info(`[Health Check] Checking: ${healthUrl}`);
+    
+    const response = await axios.get(healthUrl, {
+      timeout: 10000, // 10 seconds timeout
+      headers: {
+        'User-Agent': 'Stock-Monitor-Desktop/1.0.0',
+        'x-auth-mode': 'tokens'
+      },
+      validateStatus: () => true // Don't throw on HTTP error status codes
+    });
+    
+    if (response.status === 200) {
+      log.info(`[Health Check] Server is healthy - Status: ${response.status}`);
+      return { 
+        success: true, 
+        status: response.status, 
+        data: response.data,
+        serverUrl: serverUrl
+      };
+    } else {
+      log.warn(`[Health Check] Server returned non-200 status: ${response.status}`);
+      return { 
+        success: false, 
+        error: `Server returned status ${response.status}`,
+        status: response.status,
+        serverUrl: serverUrl
+      };
+    }
+    
+  } catch (error) {
+    log.error(`[Health Check] Failed to connect to server: ${error.message}`);
+    return { 
+      success: false, 
+      error: error.message,
+      code: error.code,
+      serverUrl: process.env.SERVER_URL || process.env.AUTH_SERVER_URL || 'https://21d62d1f-846d-480e-b468-f2b8a9f626c3-00-5s4tkfssk1gu.riker.replit.dev'
+    };
+  }
+}
+
 // Initialize database and app
 async function initializeApp() {
   try {
@@ -702,6 +750,17 @@ async function initializeApp() {
     log.info('Initializing secure memory storage...');
     secureMemory = new SecureMemoryStorage();
     log.info('Secure memory storage initialized successfully');
+    
+    // Perform server health check
+    log.info('Performing server health check...');
+    const healthCheckResult = await performHealthCheck();
+    if (!healthCheckResult.success) {
+      log.warn(`Server health check failed: ${healthCheckResult.error}`);
+      writeDebugLog(`Health check failed: ${healthCheckResult.error}`);
+    } else {
+      log.info('Server health check passed successfully');
+      writeDebugLog('Server health check passed');
+    }
     
     log.info('App ready, creating window...');
     createWindow();
@@ -789,7 +848,7 @@ ipcMain.handle('apiRequest', async (event, { url, options = {} }) => {
     log.info(`[IPC API] ${options.method || 'GET'} ${url}`);
     
     // Configure axios request
-    const serverUrl = process.env.SERVER_URL || process.env.AUTH_SERVER_URL || 'http://localhost:5000';
+    const serverUrl = process.env.SERVER_URL || process.env.AUTH_SERVER_URL || 'https://21d62d1f-846d-480e-b468-f2b8a9f626c3-00-5s4tkfssk1gu.riker.replit.dev';
     const fullUrl = url.startsWith('http') ? url : `${serverUrl}${url}`;
     
     const axiosConfig = {
@@ -798,6 +857,9 @@ ipcMain.handle('apiRequest', async (event, { url, options = {} }) => {
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'Stock-Monitor-Desktop/1.0.0',
+        'x-auth-mode': 'tokens', // Request token-based authentication for desktop
+        'x-client-type': 'desktop', // Identify as desktop client
+        'x-client-version': '1.0.0', // Desktop app version
         ...options.headers
       },
       data: options.body ? JSON.parse(options.body) : undefined,
