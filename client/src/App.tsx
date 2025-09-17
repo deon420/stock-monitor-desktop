@@ -11,6 +11,7 @@ import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { DesktopLogin } from "@/components/DesktopLogin";
 import { ReactQueryValidation } from "@/components/ReactQueryValidation";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
 import { Loader2 } from "lucide-react";
 import { useEffect, Suspense, lazy } from "react";
 
@@ -68,7 +69,11 @@ function AuthenticatedRouter() {
           <Route path="/profile" component={ProfilePage} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/notifications" component={NotificationHistoryPage} />
-          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin">
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          </Route>
           <Route component={NotFound} />
         </Switch>
       </Suspense>
