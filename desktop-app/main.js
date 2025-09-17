@@ -517,9 +517,34 @@ function createWindow() {
       writeDebugLog(debugInfo);
     });
     
-    // Check if the frontend files exist
-    if (frontendExists) {
-      mainWindow.loadFile(frontendPath).catch(error => {
+    // Load from development server during development, otherwise load local files
+    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production';
+    const devServerURL = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5000';
+    
+    if (isDevelopment) {
+      // Load from live development server
+      log.info('Development mode: Loading frontend from development server:', devServerURL);
+      writeDebugLog(`Development mode: Loading from ${devServerURL}`);
+      
+      mainWindow.loadURL(devServerURL).catch(error => {
+        const errorInfo = `Failed to load from development server: ${error.message}`;
+        log.error(errorInfo);
+        writeDebugLog(errorInfo);
+        
+        // Fallback to local files if dev server is not available
+        log.info('Falling back to local frontend files...');
+        loadLocalFiles();
+      });
+    } else {
+      // Load local files in production
+      log.info('Production mode: Loading local frontend files');
+      loadLocalFiles();
+    }
+    
+    function loadLocalFiles() {
+      // Check if the frontend files exist
+      if (frontendExists) {
+        mainWindow.loadFile(frontendPath).catch(error => {
         const errorInfo = `Failed to load frontend: ${error.message}`;
         log.error(errorInfo);
         writeDebugLog(errorInfo);
@@ -576,6 +601,7 @@ function createWindow() {
         </html>
       `;
       mainWindow.loadURL(`data:text/html,${encodeURIComponent(errorHtml)}`);
+      }
     }
 
     // Show window when ready

@@ -1,8 +1,13 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+// Debug logging for preload script
+console.log('[Preload] Preload script starting...');
+
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
-contextBridge.exposeInMainWorld('electronAPI', {
+try {
+  console.log('[Preload] Exposing electronAPI to main world...');
+  contextBridge.exposeInMainWorld('electronAPI', {
   
   // HTTP API for authentication and data (fallback to external server)
   apiRequest: async (url, options = {}) => {
@@ -474,3 +479,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onUpdateAvailable: (callback) => ipcRenderer.on('update-available', callback),
   onUpdateDownloaded: (callback) => ipcRenderer.on('update-downloaded', callback)
 });
+
+  console.log('[Preload] electronAPI successfully exposed to main world');
+} catch (error) {
+  console.error('[Preload] Failed to expose electronAPI:', error);
+}
+
+console.log('[Preload] Preload script completed');

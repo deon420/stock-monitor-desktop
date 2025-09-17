@@ -58,8 +58,13 @@ export function DesktopLogin({ onLoginSuccess }: DesktopLoginProps) {
       // Check for electronAPI availability with a small delay to handle timing issues
       await new Promise(resolve => setTimeout(resolve, 100));
       
+      console.log('[DesktopLogin] Checking for electronAPI...');
+      console.log('[DesktopLogin] window.electronAPI:', (window as any).electronAPI);
+      
       const electronAPI = (window as any).electronAPI;
       const isElectronAvailable = !!electronAPI;
+      
+      console.log('[DesktopLogin] electronAPI available:', isElectronAvailable);
       
       setElectronAPIStatus({ 
         available: isElectronAvailable, 
