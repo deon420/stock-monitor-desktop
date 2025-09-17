@@ -314,6 +314,82 @@ class ProductScheduler {
 // Global scheduler instance
 const productScheduler = new ProductScheduler();
 
+/**
+ * Initialize default subscription plans with proper itemLimit features
+ */
+async function initializeDefaultSubscriptionPlans() {
+  try {
+    const existingPlans = await storage.getSubscriptionPlans();
+    
+    // Skip initialization if plans already exist
+    if (existingPlans.length > 0) {
+      logger.info(`Found ${existingPlans.length} existing subscription plans, skipping initialization`);
+      return;
+    }
+
+    const defaultPlans = [
+      {
+        name: 'Free',
+        description: 'Basic monitoring with limited items',
+        stripePriceId: 'price_free', // Placeholder for free tier
+        monthlyPrice: '0.00',
+        features: {
+          itemLimit: 5,
+          checkInterval: 30, // minutes
+          emailNotifications: true,
+          soundAlerts: true
+        }
+      },
+      {
+        name: 'Pro Basic',
+        description: 'Enhanced monitoring for small businesses',
+        stripePriceId: 'price_pro_basic', // Placeholder - would be real Stripe price ID
+        monthlyPrice: '9.99',
+        features: {
+          itemLimit: 50,
+          checkInterval: 15, // minutes
+          emailNotifications: true,
+          soundAlerts: true,
+          prioritySupport: false
+        }
+      },
+      {
+        name: 'Pro Premium', 
+        description: 'Professional monitoring for larger operations',
+        stripePriceId: 'price_pro_premium', // Placeholder - would be real Stripe price ID
+        monthlyPrice: '29.99',
+        features: {
+          itemLimit: 500, // Effectively unlimited for most users
+          checkInterval: 5, // minutes
+          emailNotifications: true,
+          soundAlerts: true,
+          prioritySupport: true,
+          advancedFilters: true
+        }
+      }
+    ];
+
+    // Create default plans
+    for (const planData of defaultPlans) {
+      const plan = await storage.createSubscriptionPlan({
+        name: planData.name,
+        description: planData.description,
+        stripePriceId: planData.stripePriceId,
+        monthlyPrice: planData.monthlyPrice,
+        features: planData.features,
+        isActive: true
+      });
+      
+      logger.info(`Created default subscription plan: ${plan.name} with itemLimit: ${planData.features.itemLimit}`);
+    }
+
+    logger.info('Default subscription plans initialized successfully');
+  } catch (error) {
+    logger.error('Failed to initialize default subscription plans:', error);
+    // Don't throw - server should still start even if plan initialization fails
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup comprehensive authorization testing routes (if in development)
   if (process.env.NODE_ENV !== 'production') {
@@ -782,7 +858,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       logger.error('Switch subscription error:', error);
-      if (error.message === 'No active subscription found') {
+      if (error instanceof Error && error.message === 'No active subscription found') {
         return res.status(404).json({ error: error.message });
       }
       res.status(500).json({ error: 'Internal server error' });
@@ -808,7 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       logger.error('Cancel subscription error:', error);
-      if (error.message === 'No active subscription found') {
+      if (error instanceof Error && error.message === 'No active subscription found') {
         return res.status(404).json({ error: error.message });
       }
       res.status(500).json({ error: 'Internal server error' });
@@ -888,6 +964,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
     } catch (error) {
       logger.error('Stripe customer portal error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // ======================
+  // SYSTEM API ROUTES
+  // ======================
+
+  // GET /api/health - Simple health check endpoint
+  app.get("/api/health", (req, res) => {
+    res.json({ 
+      ok: true, 
+      version: "1.0.0",
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // GET /api/access/entitlements - Authorization status check
+  app.get("/api/access/entitlements", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      
+      // Check user authorization status
+      const authResult = await authService.checkUserAuthorization(user.id);
+      
+      // Get subscription info for plan details
+      const subscription = await storage.getUserSubscription(user.id);
+      const subscriptionPlans = await storage.getSubscriptionPlans();
+      
+      // Determine plan tier and item limit
+      let planTier = 'free';
+      let itemLimit = 5; // Default free tier limit
+      
+      if (authResult.authorized) {
+        if (authResult.accessType === 'beta') {
+          planTier = 'beta';
+          itemLimit = 500; // Beta users get high tier access
+        } else if (subscription && subscription.planId) {
+          const plan = subscriptionPlans.find(p => p.id === subscription.planId);
+          if (plan) {
+            // Extract features from plan
+            const features = plan.features as any;
+            
+            // Derive tier from itemLimit for deterministic behavior - map to valid PlanTier values
+            planTier = features?.itemLimit >= 50 ? 'pro' : 'free';
+            itemLimit = features?.itemLimit || 5;
+          }
+        }
+      }
+      
+      res.json({
+        authorized: authResult.authorized,
+        accessType: authResult.accessType || null,
+        planTier,
+        itemLimit,
+        status: authResult.authorized ? 'active' : 'restricted',
+        reason: authResult.reason
+      });
+      
+    } catch (error) {
+      logger.error('Entitlements check error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -1917,6 +2054,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PATCH /api/admin/users/:id/plan - Set user subscription plan 
+  app.patch("/api/admin/users/:id/plan", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id: userId } = req.params;
+      const { planId, reason } = req.body;
+
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      if (!planId) {
+        return res.status(400).json({ error: "Plan ID is required" });
+      }
+
+      // Verify user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Verify plan exists
+      const plans = await storage.getSubscriptionPlans();
+      const plan = plans.find(p => p.id === planId);
+      if (!plan || !plan.isActive) {
+        return res.status(404).json({ error: "Plan not found or inactive" });
+      }
+
+      // Get or create subscription
+      let subscription = await storage.getUserSubscription(userId);
+      
+      if (subscription) {
+        // Update existing subscription plan
+        subscription = await storage.updateSubscription(subscription.id, {
+          planId,
+          status: 'active',
+          updatedAt: new Date()
+        });
+      } else {
+        // Create new subscription
+        subscription = await storage.createSubscription({
+          userId,
+          planId,
+          status: 'active',
+          startDate: new Date(),
+        });
+      }
+
+      // Log admin action
+      logInfo(`Admin action: User ${userId} assigned to plan ${planId}`, {
+        adminId: (req as any).session?.user?.id,
+        userId,
+        planId,
+        planName: plan.name,
+        reason
+      });
+
+      res.json({
+        success: true,
+        subscription,
+        plan,
+        message: `User assigned to ${plan.name} plan successfully`
+      });
+
+    } catch (error) {
+      console.error("Error setting user plan:", error);
+      res.status(500).json({ error: "Failed to set user plan" });
+    }
+  });
+
   app.get("/api/admin/beta-testers", requireAuth, requireAdmin, async (req, res) => {
     try {
       const { 
@@ -2057,6 +2263,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     productScheduler.stopAll();
     process.exit(0);
   });
+
+  // Initialize default subscription plans with proper itemLimit features
+  await initializeDefaultSubscriptionPlans();
 
   const httpServer = createServer(app);
 

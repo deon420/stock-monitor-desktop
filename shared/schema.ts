@@ -73,7 +73,7 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   description: text("description"),
   stripePriceId: varchar("stripe_price_id").notNull(),
   monthlyPrice: decimal("monthly_price", { precision: 10, scale: 2 }),
-  features: jsonb("features").default(sql`'[]'::jsonb`),
+  features: jsonb("features").default(sql`'{}'::jsonb`),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
