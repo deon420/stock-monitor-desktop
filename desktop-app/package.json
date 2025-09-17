@@ -32,10 +32,19 @@
       "node_modules/**/*"
     ],
     "win": {
-      "target": "dir",
+      "target": "nsis",
       "icon": "res/icon.ico"
     },
-    "publish": false
+    "publish": {
+      "provider": "generic",
+      "url": "https://your-update-server.com/"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   },
   "dependencies": {
     "express": "^4.21.2",
