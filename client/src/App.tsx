@@ -10,6 +10,7 @@ import { DesktopAuthProvider, useDesktopAuth } from "@/contexts/DesktopAuthConte
 import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { DesktopLogin } from "@/components/DesktopLogin";
 import { ReactQueryValidation } from "@/components/ReactQueryValidation";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Loader2 } from "lucide-react";
 import { useEffect, Suspense, lazy } from "react";
 
@@ -77,20 +78,22 @@ function AuthenticatedRouter() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="stock-monitor-theme">
-        <DataProviderProvider>
-          <DesktopAuthProvider>
-            <NotificationsProvider>
-                  <TooltipProvider>
-                    <Toaster />
-                    <AuthenticatedRouter />
-                  </TooltipProvider>
-            </NotificationsProvider>
-          </DesktopAuthProvider>
-        </DataProviderProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="system" storageKey="stock-monitor-theme">
+          <DataProviderProvider>
+            <DesktopAuthProvider>
+              <NotificationsProvider>
+                    <TooltipProvider>
+                      <Toaster />
+                      <AuthenticatedRouter />
+                    </TooltipProvider>
+              </NotificationsProvider>
+            </DesktopAuthProvider>
+          </DataProviderProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
