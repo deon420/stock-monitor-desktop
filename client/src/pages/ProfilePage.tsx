@@ -34,7 +34,8 @@ import {
   Mail, 
   Crown, 
   CreditCard, 
-  Settings, 
+  Settings,
+  Settings2,
   LogOut,
   ArrowLeft,
   Shield,
@@ -304,6 +305,17 @@ export default function ProfilePage() {
                       <Shield className="h-3 w-3" />
                       Admin
                     </Badge>
+                  )}
+                  {profile?.email === 'admin@47supply.com' && (
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => setLocation('/admin')}
+                      data-testid="button-admin-dashboard"
+                    >
+                      <Settings2 className="h-4 w-4 mr-2" />
+                      Admin Dashboard
+                    </Button>
                   )}
                   <Button 
                     variant="outline" 
