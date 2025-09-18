@@ -1,6 +1,5 @@
 import { Switch, Route, Router } from "wouter";
 import { isDesktopApp } from "@/utils/env";
-import { useHashLocation } from "wouter/use-hash-location";
 import { queryClient, setDesktopApiRequest } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -53,9 +52,10 @@ function AuthenticatedRouter() {
     return <DesktopLogin onLoginSuccess={() => {/* Login success is handled by DesktopAuthContext */}} />;
   }
 
-  // Show main application routes with Router wrapper encompassing ALL navigation components
+  // Show main application routes with Router wrapper encompassing ALL navigation components  
+  // TEMPORARY: Disable hash routing to test if this is causing white screen
   return (
-    <Router hook={isDesktop ? useHashLocation : undefined}>
+    <Router>
       <ReactQueryValidation />
       <WelcomeDialog />
       <Suspense fallback={
