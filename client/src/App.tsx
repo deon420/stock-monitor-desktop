@@ -1,4 +1,4 @@
-import { Switch, Route, Router } from "wouter";
+import { Switch, Route, Router, useLocation } from "wouter";
 import { isDesktopApp, getRoutingHook } from "@/utils/env";
 import { queryClient, setDesktopApiRequest } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -24,6 +24,21 @@ const NotificationHistoryPage = lazy(() => import("@/pages/NotificationHistoryPa
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 import type { AuthResponse } from "@shared/schema";
+
+// Component that handles desktop redirect inside Router context
+function DesktopRedirect() {
+  const { isAuthenticated } = useDesktopAuth();
+  const [location, setLocation] = useLocation(); // Now uses the hash routing hook
+  const isDesktop = isDesktopApp();
+
+  useEffect(() => {
+    if (isDesktop && isAuthenticated && location === '/') {
+      setLocation('/dashboard');
+    }
+  }, [isDesktop, isAuthenticated, location, setLocation]);
+
+  return null; // This component doesn't render anything
+}
 
 function AuthenticatedRouter() {
   const { isAuthenticated, isLoading, login, apiRequest } = useDesktopAuth();
@@ -58,6 +73,7 @@ function AuthenticatedRouter() {
   
   return (
     <Router hook={routingHook}>
+      <DesktopRedirect />
       <ReactQueryValidation />
       <WelcomeDialog />
       <Suspense fallback={

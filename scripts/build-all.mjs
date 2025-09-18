@@ -61,8 +61,8 @@ function runCommand(command, args, cwd = projectRoot, options = {}) {
 
 async function buildAll() {
   try {
-    console.log('\n🔧 Step 1: Building frontend...');
-    await runCommand('npm', ['run', 'build'], projectRoot);
+    console.log('\n🔧 Step 1: Building frontend for desktop with relative paths...');
+    await runCommand('npm', ['run', 'build', '--', '--base=./'], projectRoot);
 
     console.log('\n📋 Step 2: Copying frontend to desktop app...');
     await runCommand('node', ['scripts/copy-frontend.mjs'], projectRoot);
