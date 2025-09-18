@@ -167,50 +167,56 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
   const logout = useCallback(async () => {
     console.log("[DesktopAuth] Logging out user");
     
-    if (!isDesktop) {
-      setUser(null);
-      setIsLoading(false);
-      return;
-    }
-
     const currentUserId = user?.email;
     
     try {
-      // Get refresh token from keychain for logout API call
-      const electronAPI = (window as any).electronAPI;
-      let refreshToken = null;
-      
-      if (currentUserId && electronAPI?.keychainHelper?.getAuthSafe) {
-        const authData = await electronAPI.keychainHelper.getAuthSafe(currentUserId);
-        refreshToken = authData?.refreshToken;
-      }
-      
-      // Call logout endpoint to invalidate refresh token
-      if (refreshToken) {
-        if (electronAPI?.apiRequest) {
-          await electronAPI.apiRequest("/api/auth/logout", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Refresh ${refreshToken}`,
-            },
-          });
-        } else {
-          await fetch("/api/auth/logout", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Refresh ${refreshToken}`,
-            },
-          });
+      // Call logout endpoint to invalidate session
+      if (isDesktop) {
+        // Desktop: Get refresh token from keychain for logout API call
+        const electronAPI = (window as any).electronAPI;
+        let refreshToken = null;
+        
+        if (currentUserId && electronAPI?.keychainHelper?.getAuthSafe) {
+          const authData = await electronAPI.keychainHelper.getAuthSafe(currentUserId);
+          refreshToken = authData?.refreshToken;
         }
+        
+        // Call logout endpoint to invalidate refresh token
+        if (refreshToken) {
+          if (electronAPI?.apiRequest) {
+            await electronAPI.apiRequest("/api/auth/logout", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Refresh ${refreshToken}`,
+              },
+            });
+          } else {
+            await fetch("/api/auth/logout", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Refresh ${refreshToken}`,
+              },
+            });
+          }
+        }
+      } else {
+        // Web: Call logout endpoint with cookies (server will clear them)
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "include", // Include cookies
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
       }
     } catch (error) {
       console.warn("[DesktopAuth] Logout API call failed:", error);
     }
 
-    // Clear keychain auth data
-    if (currentUserId) {
+    // Clear keychain auth data (desktop only)
+    if (isDesktop && currentUserId) {
       try {
         const electronAPI = window.electronAPI as ElectronAPI | undefined;
         if (electronAPI?.keychainHelper?.clearAuthSafe) {
