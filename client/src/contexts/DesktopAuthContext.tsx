@@ -1,12 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { setDesktopApiRequest } from "@/lib/queryClient";
+import { isDesktopApp } from "@/utils/env";
 import type { AuthResponse, UserProfile } from "@shared/schema";
 import type { ElectronAPI } from "@/types/electron";
-
-// Type guard for desktop environment - defined at module level
-const isElectronApp = (): boolean => {
-  return typeof window !== 'undefined' && 'electronAPI' in window;
-};
 
 // Type definitions for desktop electron API
 interface ElectronAuthData {
@@ -69,13 +65,13 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
   const [refreshInProgress, setRefreshInProgress] = useState(false);
   const refreshPromiseRef = useRef<Promise<boolean> | null>(null);
 
-  // Check if we're in desktop environment
-  const isDesktopApp = isElectronApp();
+  // Check if we're in desktop environment using centralized utility
+  const isDesktop: boolean = isDesktopApp();
 
   // Check keychain availability on mount
   useEffect(() => {
     const checkKeychainStatus = async () => {
-      if (!isDesktopApp) {
+      if (!isDesktop) {
         setIsKeychainAvailable(false);
         return;
       }
@@ -96,12 +92,12 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     };
 
     checkKeychainStatus();
-  }, [isDesktopApp]);
+  }, [isDesktop]);
 
   const login = useCallback(async (authResponse: AuthResponse, rememberMe: boolean = false) => {
     console.log("[DesktopAuth] Login successful, persisting tokens securely");
     
-    if (!isDesktopApp) {
+    if (!isDesktop) {
       console.warn('[DesktopAuth] Not in desktop environment, skipping keychain storage');
       setUser(authResponse.user);
       setIsLoading(false);
@@ -166,12 +162,12 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     }
     
     setIsLoading(false);
-  }, [isDesktopApp]);
+  }, [isDesktop]);
 
   const logout = useCallback(async () => {
     console.log("[DesktopAuth] Logging out user");
     
-    if (!isDesktopApp) {
+    if (!isDesktop) {
       setUser(null);
       setIsLoading(false);
       return;
@@ -228,10 +224,10 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     
     setUser(null);
     setIsLoading(false);
-  }, [isDesktopApp, user]);
+  }, [isDesktop, user]);
 
   const refreshToken = useCallback(async (retryCount = 0): Promise<boolean> => {
-    if (!isDesktopApp) return false;
+    if (!isDesktop) return false;
 
     const currentUserId = user?.email;
     if (!currentUserId) {
@@ -358,10 +354,10 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
       refreshPromiseRef.current = null;
       setRefreshInProgress(false);
     }
-  }, [isDesktopApp, user?.email, logout]);
+  }, [isDesktop, user?.email, logout]);
 
   const checkAuthStatus = useCallback(async () => {
-    if (!isDesktopApp) {
+    if (!isDesktop) {
       // For web users, check cookie-based authentication
       console.log("[DesktopAuth] Checking web authentication status via cookies");
       try {
@@ -488,7 +484,7 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     }
     
     setIsLoading(false);
-  }, [isDesktopApp, refreshToken]);
+  }, [isDesktop, refreshToken]);
 
   useEffect(() => {
     checkAuthStatus();
@@ -498,7 +494,7 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
   const clearStoredCredentials = useCallback(async () => {
     console.log('[DesktopAuth] Clearing all stored credentials');
     
-    if (!isDesktopApp) {
+    if (!isDesktop) {
       return;
     }
     
@@ -530,11 +526,11 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     } catch (error) {
       console.error('[DesktopAuth] Error clearing credentials:', error);
     }
-  }, [isDesktopApp, user?.email]);
+  }, [isDesktop, user?.email]);
   
   // Auto-refresh token periodically (every 10 minutes)
   useEffect(() => {
-    if (!isDesktopApp || !user) return;
+    if (!isDesktop || !user) return;
 
     const interval = setInterval(async () => {
       if (user) {
@@ -544,11 +540,11 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     }, 10 * 60 * 1000); // 10 minutes
 
     return () => clearInterval(interval);
-  }, [isDesktopApp, user, refreshToken]);
+  }, [isDesktop, user, refreshToken]);
 
   // Provide API request function with automatic token handling from keychain
   const apiRequest = useCallback(async (url: string, options: RequestInit = {}) => {
-    if (!isDesktopApp) {
+    if (!isDesktop) {
       // For web users, ensure credentials are included for cookie-based auth
       return fetch(url, {
         ...options,
@@ -651,11 +647,11 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     }
 
     return response;
-  }, [isDesktopApp, user, refreshToken]);
+  }, [isDesktop, user, refreshToken]);
 
   // Wire apiRequest into global queryClient for desktop apps
   useEffect(() => {
-    if (isDesktopApp) {
+    if (isDesktop) {
       console.log("[DesktopAuth] Wiring desktop API transport into queryClient");
       setDesktopApiRequest(apiRequest);
     } else {
@@ -665,16 +661,16 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
     
     // Cleanup on unmount
     return () => {
-      if (isDesktopApp) {
+      if (isDesktop) {
         console.log("[DesktopAuth] Cleaning up desktop API transport from queryClient");
         setDesktopApiRequest(null);
       }
     };
-  }, [isDesktopApp, apiRequest]);
+  }, [isDesktop, apiRequest]);
 
   // Activity tracking for auto-logout
   useEffect(() => {
-    if (!isDesktopApp || !user) {
+    if (!isDesktop || !user) {
       return;
     }
 
@@ -737,7 +733,7 @@ export function DesktopAuthProvider({ children }: DesktopAuthProviderProps) {
         document.removeEventListener(event, handleActivity, true);
       });
     };
-  }, [isDesktopApp, user, logout]);
+  }, [isDesktop, user, logout]);
 
   // Explicitly define isAuthenticated to fix ReferenceError
   const contextValue: DesktopAuthContextType = {

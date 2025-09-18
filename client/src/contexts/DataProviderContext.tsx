@@ -3,7 +3,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { IDataProvider } from '@/lib/dataProvider'
 import { WebDemoDataProvider } from '@/lib/webDemoDataProvider'
-import { DesktopDataProvider, isDesktopApp } from '@/lib/desktopDataProvider'
+import { DesktopDataProvider } from '@/lib/desktopDataProvider'
+import { isDesktopApp } from '@/utils/env'
 
 interface DataProviderContextType {
   dataProvider: IDataProvider | null
@@ -33,7 +34,7 @@ export function DataProviderProvider({ children }: DataProviderProps) {
       try {
         console.log('[DataProviderContext] Initializing data provider...')
         
-        // Check if we're running in desktop environment
+        // Check if we're running in desktop environment using centralized utility
         const isDesktop = isDesktopApp()
         console.log('[DataProviderContext] Environment detected:', isDesktop ? 'desktop' : 'web')
 

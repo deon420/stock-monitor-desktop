@@ -16,7 +16,7 @@ import { Settings as SettingsIcon, Volume2, Mail, Shield, HelpCircle, Play, Send
 import { useToast } from "@/hooks/use-toast"
 import { apiRequest, queryClient } from "@/lib/queryClient"
 import { audioPlayer } from "@/utils/audioPlayer"
-import { isDesktopApp } from "@/lib/desktopDataProvider"
+import { isDesktopApp } from "@/utils/env"
 import { Settings as SettingsData, UpdateSettings } from "@shared/schema"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -69,89 +69,72 @@ export default function Settings({ isOpen, onClose, onDemoStock, onDemoPrice }: 
     setDemoAntiBotSettings(prev => ({ ...prev, [key]: value }))
   }
 
-  // Use local demo settings instead of API for web demo
+  // Use local demo settings instead of API for web demo - only include properties that exist in schema
   const demoSettings: SettingsData = {
     id: 'demo',
     createdAt: null,
     updatedAt: null,
     userId: 'demo-user',
+    // General Settings
     amazonCheckInterval: 20,
     walmartCheckInterval: 10,
     enableRandomization: true,
+    // Audio Settings
     enableAudio: true,
     audioNotificationSound: 'chime',
     audioVolume: 80,
+    // Email Settings
     enableEmail: false,
     gmailEmail: '',
     gmailAppPassword: '',
+    // Application Behavior Settings
     enableTaskTray: false,
-    enableDesktopNotifications: true,
-    enableBrowserNotifications: false,
-    enableSoundNotifications: true,
-    enableVisualIndicators: true,
-    enableQuietHours: false,
-    quietHoursStart: '22:00',
-    quietHoursEnd: '08:00',
-    enableLocationTracking: false,
-    locationUpdateInterval: 30,
-    enableDataCollection: false,
-    dataRetentionDays: 30,
-    enableCrashReporting: true,
-    enableUsageAnalytics: false,
-    enablePerformanceMonitoring: true,
-    enableErrorLogging: true,
-    enableDebugMode: false,
-    enableVerboseLogging: false,
-    enableFileLogging: true,
-    maxLogFileSize: 10,
-    logRotationDays: 7,
-    enableRemoteLogging: false,
-    remoteLoggingEndpoint: '',
-    enableMetrics: false,
-    metricsInterval: 60,
-    enableAlerts: true,
-    alertThreshold: 5,
-    enableMaintenance: false,
-    maintenanceWindow: '02:00-04:00',
-    enableBackup: true,
-    backupInterval: 24,
-    backupRetentionDays: 30,
-    enableSync: false,
-    syncInterval: 15,
-    enableCache: true,
-    cacheSize: 100,
-    cacheTTL: 300,
-    enableCompression: false,
-    compressionLevel: 6,
-    enableEncryption: true,
-    encryptionAlgorithm: 'AES-256',
-    enableAuthentication: true,
-    sessionTimeout: 30,
-    maxLoginAttempts: 5,
-    lockoutDuration: 15,
-    enableTwoFactor: false,
-    twoFactorMethod: 'sms',
-    enablePasswordPolicy: true,
-    minPasswordLength: 8,
-    requireSpecialChars: true,
-    requireNumbers: true,
-    requireUppercase: true,
-    passwordExpiryDays: 90,
-    enableAccountLockout: true,
-    maxFailedAttempts: 3,
-    lockoutDurationMinutes: 30,
-    enableSessionManagement: true,
-    maxConcurrentSessions: 3,
-    enableAuditLog: true,
-    auditLogRetentionDays: 365,
-    enableSecurityHeaders: true,
-    enableRateLimiting: true,
-    rateLimitRequests: 100,
-    rateLimitWindow: 15,
-    enableIPWhitelist: false,
-    whitelistedIPs: '',
-    enableGeoBlocking: false,
-    blockedCountries: '',
+    // Proxy Settings
+    enableProxy: false,
+    proxyUrl: '',
+    proxyUsername: '',
+    proxyPassword: '',
+    // Solution Suggestion Settings
+    enableSolutionSuggestions: true,
+    // User Agent Rotation Settings
+    enableUserAgentRotation: true,
+    enableDesktopUserAgents: true,
+    enableMobileUserAgents: false,
+    enableFirefoxUserAgents: true,
+    enableChromeUserAgents: true,
+    enableSafariUserAgents: false,
+    // Request Delay Settings
+    enableDynamicDelays: true,
+    minRequestDelay: 1000,
+    maxRequestDelay: 5000,
+    enableExponentialBackoff: true,
+    maxBackoffDelay: 300000,
+    // Header Randomization Settings
+    enableHeaderRandomization: true,
+    enableAcceptLanguageVariation: true,
+    enableAcceptEncodingVariation: false,
+    enableCustomHeaders: false,
+    // IP/Proxy Rotation Settings
+    enableIpRotation: false,
+    enableProxyRotation: false,
+    proxyRotationUrls: '',
+    // Request Pattern Modification Settings
+    enablePatternRandomization: true,
+    enableRequestOrderRandomization: false,
+    enableTimingVariation: true,
+    // Platform-Specific Workaround Settings
+    enableAmazonWorkarounds: true,
+    enableWalmartWorkarounds: true,
+    enableCookieManagement: false,
+    enableJsChallengeMitigation: false,
+    // Solution Effectiveness Tracking
+    enableEffectivenessTracking: true,
+    trackSolutionSuccess: true,
+    autoDisableIneffectiveSolutions: false,
+    solutionSuccessThreshold: 60,
+    // Auto-Application Settings
+    enableAutoSolutionApplication: false,
+    autoApplyOnDetection: false,
     confirmBeforeApplying: true
   }
   

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle, Shield, Server, Settings, Zap } from "lucide-react";
+import { isDesktopApp } from "@/utils/env";
 
 export function WelcomeDialog() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +19,7 @@ export function WelcomeDialog() {
 
   useEffect(() => {
     // Only show welcome dialog in desktop app, not on website
-    if (typeof window !== 'undefined' && 'electronAPI' in window) {
+    if (isDesktopApp()) {
       setIsOpen(true);
     }
   }, []);

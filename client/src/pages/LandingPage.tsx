@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useDesktopAuth } from "@/contexts/DesktopAuthContext";
+import { isDesktopApp } from "@/utils/env";
 // Code split modal components to reduce bundle size
 const AuthChoiceModal = lazy(() => import("@/components/AuthChoiceModal"));
 const DemoModal = lazy(() => import("@/components/DemoModal"));
@@ -42,12 +43,12 @@ export default function LandingPage() {
   const [, setLocation] = useLocation();
   const { user, isAuthenticated, isLoading } = useDesktopAuth();
   
-  // Check if we're in desktop environment
-  const isDesktopApp = typeof window !== 'undefined' && 'electronAPI' in window;
+  // Check if we're in desktop environment using centralized utility
+  const isDesktop = isDesktopApp();
   
   // For web users, check authentication status on mount
   useEffect(() => {
-    if (!isDesktopApp && !isAuthenticated && !isLoading) {
+    if (!isDesktop && !isAuthenticated && !isLoading) {
       // Check if user is authenticated via cookies
       fetch('/api/me', {
         credentials: 'include' // Include cookies
@@ -67,7 +68,7 @@ export default function LandingPage() {
         // User not authenticated, which is normal for landing page
       });
     }
-  }, [isDesktopApp, isAuthenticated, isLoading]);
+  }, [isDesktop, isAuthenticated, isLoading]);
 
   const openSignupModal = () => {
     setAuthModalMode('signup');

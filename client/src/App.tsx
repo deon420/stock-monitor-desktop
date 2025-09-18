@@ -1,4 +1,6 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Router } from "wouter";
+import { isDesktopApp } from "@/utils/env";
+import { useHashLocation } from "wouter/use-hash-location";
 import { queryClient, setDesktopApiRequest } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -29,8 +31,8 @@ function AuthenticatedRouter() {
 
   // Desktop authentication is now wired in DesktopAuthContext
 
-  // Check if we're in desktop environment
-  const isDesktopApp = typeof window !== 'undefined' && 'electronAPI' in window;
+  // Check if we're in desktop environment using centralized utility
+  const isDesktop = isDesktopApp();
 
   // Show loading screen while checking authentication
   if (isLoading) {
@@ -39,7 +41,7 @@ function AuthenticatedRouter() {
         <div className="text-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
           <p className="text-muted-foreground">
-            {isDesktopApp ? "Checking authentication..." : "Loading..."}
+            {isDesktop ? "Checking authentication..." : "Loading..."}
           </p>
         </div>
       </div>
@@ -47,13 +49,13 @@ function AuthenticatedRouter() {
   }
 
   // Show login page for desktop app if not authenticated
-  if (isDesktopApp && !isAuthenticated) {
+  if (isDesktop && !isAuthenticated) {
     return <DesktopLogin onLoginSuccess={() => {/* Login success is handled by DesktopAuthContext */}} />;
   }
 
-  // Show main application routes  
+  // Show main application routes with Router wrapper encompassing ALL navigation components
   return (
-    <>
+    <Router hook={isDesktop ? useHashLocation : undefined}>
       <ReactQueryValidation />
       <WelcomeDialog />
       <Suspense fallback={
@@ -77,7 +79,7 @@ function AuthenticatedRouter() {
           <Route component={NotFound} />
         </Switch>
       </Suspense>
-    </>
+    </Router>
   );
 }
 

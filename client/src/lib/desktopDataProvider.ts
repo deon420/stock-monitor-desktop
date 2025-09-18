@@ -54,10 +54,10 @@ declare global {
 
 /**
  * Check if we're running in desktop environment
+ * Note: This function has been moved to @/utils/env for centralized environment detection
  */
-export function isDesktopApp(): boolean {
-  return typeof window !== 'undefined' && 'electronAPI' in window && !!window.electronAPI?.dbHelper?.isDesktop();
-}
+// DEPRECATED: Use isDesktopApp from @/utils/env instead
+import { isDesktopApp } from "@/utils/env";
 
 /**
  * Get the desktop API if available
