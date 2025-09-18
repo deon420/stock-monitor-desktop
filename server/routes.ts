@@ -651,6 +651,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // GET /api/me - Get current user information
   app.get("/api/me", requireAuth, async (req, res) => {
+    // Disable caching for user-specific data to prevent stale privilege displays
+    res.setHeader('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     try {
       const user = (req as any).user;
       const fullUser = await storage.getUser(user.id);
@@ -668,13 +673,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get subscription info
       const subscription = await storage.getUserSubscription(user.id);
 
+      // Check admin status from database instead of trusting JWT
+      const isAdmin = await storage.isUserAdmin(user.id);
+
       const userProfile: UserProfile = {
         id: fullUser.id,
         email: fullUser.email!,
         firstName: fullUser.firstName,
         lastName: fullUser.lastName,
         profileImageUrl: fullUser.profileImageUrl,
-        isAdmin: user.isAdmin,
+        isAdmin,
         authorized: authResult.authorized,
         authorizationReason: authResult.reason,
         betaAccess: betaAccess ? {

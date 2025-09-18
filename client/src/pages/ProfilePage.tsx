@@ -94,33 +94,7 @@ export default function ProfilePage() {
     },
   });
 
-  // Form hydration effect - reset forms when profile data loads
-  useEffect(() => {
-    if (profile) {
-      profileForm.reset({
-        firstName: profile.firstName || '',
-        lastName: profile.lastName || '',
-      });
-      
-      billingForm.reset({
-        billingEmail: profile.billingEmail || profile.email || '',
-      });
-    }
-  }, [profile, profileForm, billingForm]);
-
-  // Redirect if not authenticated (moved to useEffect to avoid render side effects)
-  useEffect(() => {
-    if (!isAuthenticated || !user) {
-      setLocation('/');
-    }
-  }, [isAuthenticated, user, setLocation]);
-
-  // Early return AFTER all hooks are called
-  if (!isAuthenticated || !user) {
-    return null;
-  }
-
-  // Mutations using apiRequest for consistent error handling
+  // Mutations using apiRequest - MOVED BEFORE EARLY RETURN TO FIX HOOK ERROR
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData): Promise<FullUserProfile> => {
       const response = await apiRequest('PATCH', '/api/profile', data);
@@ -179,6 +153,32 @@ export default function ProfilePage() {
       });
     },
   });
+
+  // Form hydration effect - reset forms when profile data loads
+  useEffect(() => {
+    if (profile) {
+      profileForm.reset({
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+      });
+      
+      billingForm.reset({
+        billingEmail: profile.billingEmail || profile.email || '',
+      });
+    }
+  }, [profile, profileForm, billingForm]);
+
+  // Redirect if not authenticated (moved to useEffect to avoid render side effects)
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, user, setLocation]);
+
+  // Early return AFTER all hooks are called
+  if (!isAuthenticated || !user) {
+    return null;
+  }
 
   const handleLogout = async () => {
     await logout();
