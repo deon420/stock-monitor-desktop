@@ -62,7 +62,10 @@ function runCommand(command, args, cwd = projectRoot, options = {}) {
 async function buildAll() {
   try {
     console.log('\n🔧 Step 1: Building frontend for desktop with relative paths...');
-    await runCommand('npm', ['run', 'build', '--', '--base=./'], projectRoot);
+    // Run vite build with relative paths for desktop
+    await runCommand('npx', ['vite', 'build', '--base=./'], projectRoot);
+    // Run esbuild separately for server bundle
+    await runCommand('npx', ['esbuild', 'server/index.ts', '--platform=node', '--packages=external', '--bundle', '--format=esm', '--outdir=dist'], projectRoot);
 
     console.log('\n📋 Step 2: Copying frontend to desktop app...');
     await runCommand('node', ['scripts/copy-frontend.mjs'], projectRoot);
