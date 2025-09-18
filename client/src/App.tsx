@@ -1,5 +1,5 @@
 import { Switch, Route, Router } from "wouter";
-import { isDesktopApp } from "@/utils/env";
+import { isDesktopApp, getRoutingHook } from "@/utils/env";
 import { queryClient, setDesktopApiRequest } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -52,10 +52,12 @@ function AuthenticatedRouter() {
     return <DesktopLogin onLoginSuccess={() => {/* Login success is handled by DesktopAuthContext */}} />;
   }
 
-  // Show main application routes with Router wrapper encompassing ALL navigation components  
-  // TEMPORARY: Disable hash routing to test if this is causing white screen
+  // Show main application routes with Router wrapper encompassing ALL navigation components
+  // Use hash-based routing for desktop app to avoid 404 errors in Electron's file:// protocol
+  const routingHook = getRoutingHook();
+  
   return (
-    <Router>
+    <Router hook={routingHook}>
       <ReactQueryValidation />
       <WelcomeDialog />
       <Suspense fallback={

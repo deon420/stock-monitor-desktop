@@ -2,6 +2,7 @@
  * Centralized environment detection utility
  * Provides unified methods to detect desktop app environment
  */
+import { useHashLocation } from 'wouter/use-hash-location';
 
 /**
  * Detects if the application is running in an Electron desktop environment
@@ -29,7 +30,7 @@ export function isWebApp(): boolean {
 export function getRoutingHook() {
   if (isDesktopApp()) {
     // Return hash location hook for desktop apps
-    return require('wouter/use-hash-location').useHashLocation;
+    return useHashLocation;
   }
   // Return undefined for default history routing in web apps
   return undefined;
