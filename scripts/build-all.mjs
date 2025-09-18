@@ -61,11 +61,16 @@ function runCommand(command, args, cwd = projectRoot, options = {}) {
 
 async function buildAll() {
   try {
+    console.log('\n🔧 Step 0: Installing root dependencies...');
+    await runCommand('npm', ['ci'], projectRoot);
+
     console.log('\n🔧 Step 1: Building frontend for desktop with relative paths...');
-    // Run vite build with relative paths for desktop
-    await runCommand('npx', ['vite', 'build', '--base=./'], projectRoot);
-    // Run esbuild separately for server bundle
-    await runCommand('npx', ['esbuild', 'server/index.ts', '--platform=node', '--packages=external', '--bundle', '--format=esm', '--outdir=dist'], projectRoot);
+    // Run vite build with relative paths for desktop using local binary
+    const viteBin = process.platform === 'win32' ? 'vite.cmd' : 'vite';
+    await runCommand(join(projectRoot, 'node_modules', '.bin', viteBin), ['build', '--base=./'], projectRoot);
+    // Run esbuild separately for server bundle using local binary
+    const esbuildBin = process.platform === 'win32' ? 'esbuild.cmd' : 'esbuild';
+    await runCommand(join(projectRoot, 'node_modules', '.bin', esbuildBin), ['server/index.ts', '--platform=node', '--packages=external', '--bundle', '--format=esm', '--outdir=dist'], projectRoot);
 
     console.log('\n📋 Step 2: Copying frontend to desktop app...');
     await runCommand('node', ['scripts/copy-frontend.mjs'], projectRoot);
