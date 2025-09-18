@@ -484,7 +484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Rate limiting for login attempts
       const clientId = req.ip || 'unknown';
-      if (!authService.checkRateLimit(`login:${clientId}`, 5, 15 * 60 * 1000)) {
+      if (!authService.checkRateLimit(`login:${clientId}`, 15, 15 * 60 * 1000)) {
         return res.status(429).json({ error: 'Too many login attempts. Please try again later.' });
       }
 
