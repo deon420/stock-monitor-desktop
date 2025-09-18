@@ -67,27 +67,18 @@ export default function ProfilePage() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingBilling, setEditingBilling] = useState(false);
 
-  // Redirect if not authenticated (moved to useEffect to avoid render side effects)
-  useEffect(() => {
-    if (!isAuthenticated || !user) {
-      setLocation('/');
-    }
-  }, [isAuthenticated, user, setLocation]);
-
-  if (!isAuthenticated || !user) {
-    return null;
-  }
-
-  // Queries with proper TypeScript generics
+  // Queries with proper TypeScript generics - MOVED BEFORE EARLY RETURN
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery<FullUserProfile>({
     queryKey: ['/api/profile'],
+    enabled: isAuthenticated && !!user, // Only run if authenticated
   });
 
   const { data: plans, isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
     queryKey: ['/api/subscription/plans'],
+    enabled: isAuthenticated && !!user, // Only run if authenticated
   });
 
-  // Forms with proper hydration
+  // Forms with proper hydration - MOVED BEFORE EARLY RETURN  
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -116,6 +107,18 @@ export default function ProfilePage() {
       });
     }
   }, [profile, profileForm, billingForm]);
+
+  // Redirect if not authenticated (moved to useEffect to avoid render side effects)
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setLocation('/');
+    }
+  }, [isAuthenticated, user, setLocation]);
+
+  // Early return AFTER all hooks are called
+  if (!isAuthenticated || !user) {
+    return null;
+  }
 
   // Mutations using apiRequest for consistent error handling
   const updateProfileMutation = useMutation({
