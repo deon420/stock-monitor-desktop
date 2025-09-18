@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import { CheckCircle, Shield, Server, Settings, Zap } from "lucide-react";
 
 export function WelcomeDialog() {
   const [isOpen, setIsOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     // Only show welcome dialog in desktop app, not on website
@@ -109,7 +111,10 @@ export function WelcomeDialog() {
         </div>
         <div className="flex justify-end gap-2 pt-4">
           <Button 
-            onClick={() => setIsOpen(false)} 
+            onClick={() => {
+              setIsOpen(false);
+              setLocation('/dashboard');
+            }} 
             className="w-full"
             data-testid="button-welcome-got-it"
           >
