@@ -75,33 +75,57 @@ function fixAssetPaths(targetDir) {
   try {
     log('Fixing asset paths for Electron file:// protocol...');
     
+    // Fix HTML file
     const indexPath = path.join(targetDir, 'index.html');
     if (!fs.existsSync(indexPath)) {
       error(`index.html not found at ${indexPath}`);
       return;
     }
     
-    // Read the HTML file
     let htmlContent = fs.readFileSync(indexPath, 'utf8');
-    log(`Original HTML content length: ${htmlContent.length}`);
-    
-    // Fix asset paths: change /assets/ to ./assets/
-    const originalContent = htmlContent;
+    const originalHtmlContent = htmlContent;
     htmlContent = htmlContent
       .replace(/href="\/assets\//g, 'href="./assets/')
       .replace(/src="\/assets\//g, 'src="./assets/')
       .replace(/href='\/assets\//g, "href='./assets/")
       .replace(/src='\/assets\//g, "src='./assets/");
     
-    // Count changes made
-    const hrefChanges = (originalContent.match(/href=["']\/assets\//g) || []).length;
-    const srcChanges = (originalContent.match(/src=["']\/assets\//g) || []).length;
+    const hrefChanges = (originalHtmlContent.match(/href=["']\/assets\//g) || []).length;
+    const srcChanges = (originalHtmlContent.match(/src=["']\/assets\//g) || []).length;
     
     if (hrefChanges + srcChanges > 0) {
       fs.writeFileSync(indexPath, htmlContent, 'utf8');
-      log(`✓ Fixed ${hrefChanges} href and ${srcChanges} src asset paths`);
-    } else {
-      log('✓ No asset paths needed fixing');
+      log(`✓ Fixed ${hrefChanges} href and ${srcChanges} src asset paths in HTML`);
+    }
+    
+    // Fix JavaScript chunks (CSS preload errors come from here)
+    const assetsDir = path.join(targetDir, 'assets');
+    if (fs.existsSync(assetsDir)) {
+      const jsFiles = fs.readdirSync(assetsDir).filter(file => file.endsWith('.js'));
+      let totalJsChanges = 0;
+      
+      for (const jsFile of jsFiles) {
+        const jsPath = path.join(assetsDir, jsFile);
+        let jsContent = fs.readFileSync(jsPath, 'utf8');
+        const originalJsContent = jsContent;
+        
+        // Replace /assets/ with ./assets/ in JavaScript
+        jsContent = jsContent.replace(/"\/assets\//g, '"./assets/');
+        jsContent = jsContent.replace(/'\/assets\//g, "'./assets/");
+        
+        const jsChanges = (originalJsContent.match(/["']\/assets\//g) || []).length;
+        if (jsChanges > 0) {
+          fs.writeFileSync(jsPath, jsContent, 'utf8');
+          totalJsChanges += jsChanges;
+          log(`✓ Fixed ${jsChanges} asset paths in ${jsFile}`);
+        }
+      }
+      
+      if (totalJsChanges > 0) {
+        log(`✓ Fixed ${totalJsChanges} total asset paths in ${jsFiles.length} JS files`);
+      } else {
+        log('✓ No JS asset paths needed fixing');
+      }
     }
     
   } catch (err) {
@@ -153,8 +177,8 @@ function main() {
     error('desktop-app directory not found');
   }
   
-  // Step 1: Build the frontend
-  execCommand('npm run build', 'Building Vite frontend', rootDir);
+  // Step 1: Skip build - assume build-all.mjs already built with relative paths
+  log('Skipping build - assuming dist already exists with relative paths from build-all.mjs');
   
   // Step 2: Determine source directory
   const distDir = path.join(rootDir, 'dist');
